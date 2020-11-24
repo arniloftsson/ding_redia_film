@@ -1,0 +1,35 @@
+<?php //
+
+/**
+ * @file
+ * 
+ */
+
+
+function ding_redia_film_menu() {
+  $items = array();
+
+  $items['film/redia'] = array(
+      'title' => 'Redia Film',
+      'page callback' => 'ding_redia_film_render',
+      //'page arguments' => array(1, 2, 3),
+      'access arguments' => array('access content'),
+          //'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+function ding_redia_film_render() {
+  $content = '
+  <div id="readers-compass-page"></div>  
+  <script src="https://api.laesekompas.dk/ddbWidget.js"></script>
+      <script>
+        EmbeddableWidget.mount({
+          type: "inspiration",
+          parentElement: "#readers-compass-page", // Dom Element in which the widget is mounted.
+          token: "5e03b34c9e105ce05751898141cd642eac7f894c" // Needs to be provided på DBC.
+        });
+      </script>';
+  return $content;
+}
