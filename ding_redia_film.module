@@ -80,6 +80,12 @@ function ding_redia_film_authenticate()
     $status = 'not_logged_in';
   } elseif (!ding_user_is_provider_user($user)) {
     $status = 'not_library_user';
+  } elseif (module_exists('connie')) {
+    //Test 
+    $status = 'test';
+    $token = "1ffc1cee55c98511cc03802baedb52719ecf746e";
+  } elseif (!module_exists('ding_adgangsplatformen')) {
+    $status = 'adgangsplatformen_not_enabled';
   } else {
     $status = 'logged_in';
     $token = ding_adgangsplatformen_openplatform_token_for_user();
