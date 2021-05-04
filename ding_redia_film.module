@@ -73,7 +73,7 @@ function ding_redia_film_render()
 function ding_redia_film_authenticate()
 {
   $status = '';
-  $token = null;
+  $film_service_token = null;
   // Check if the logged in user is a library user.
   global $user;
   if (!user_is_logged_in()) {
@@ -83,16 +83,50 @@ function ding_redia_film_authenticate()
   } elseif (module_exists('connie')) {
     //Test 
     $status = 'test';
-    $token = "1ffc1cee55c98511cc03802baedb52719ecf746e";
+    $token = "fb5ed8298704cdf4f8e521ba6926069fdfc5e6c5";
+    $user_id = "bob";
+    $film_service_token = ding_redia_film_get_film_service_token($token, $user_id);
   } elseif (!module_exists('ding_adgangsplatformen')) {
     $status = 'adgangsplatformen_not_enabled';
   } else {
     $status = 'logged_in';
     $token = ding_adgangsplatformen_openplatform_token_for_user();
   }
-  $output = array('token' => $token, 'status' => $status);
+  $output = array('token' => $film_service_token, 'status' => $status);
   drupal_json_output($output);
 }
 
+function ding_redia_film_get_film_service_token($token, $user_id)
+{
 
 
+  try {
+    $client = new \GuzzleHttp\Client();
+    $jar = new \GuzzleHttp\Cookie\CookieJar;
+
+    $options = [
+      'json' => [
+        "jsonrpc" => "2.0",
+        "id" => 1,
+        "method" => "watch.webLogin",
+        "params" => ["12481632", $user_id, $token]
+      ],
+      'cookies' => $jar
+    ];
+    file_put_contents("/var/www/drupalvm/drupal/web/debug/film5.txt", print_r(json_encode($options , JSON_PRETTY_PRINT) , TRUE), FILE_APPEND);
+    $response = $client->post("https://bapps-be-staging.redia.dk/v2/", $options);
+    file_put_contents("/var/www/drupalvm/drupal/web/debug/film1.txt", print_r($response , TRUE), FILE_APPEND);
+    $content = $response->getBody()->getContents();
+
+    $jar->toArray();
+    file_put_contents("/var/www/drupalvm/drupal/web/debug/film6.txt", print_r($jar->toArray() , TRUE), FILE_APPEND);
+
+    file_put_contents("/var/www/drupalvm/drupal/web/debug/film2.txt", print_r($content , TRUE), FILE_APPEND);
+   
+    $json = json_decode($content, true);
+    file_put_contents("/var/www/drupalvm/drupal/web/debug/film7.txt", print_r(json_encode($json , JSON_PRETTY_PRINT) , TRUE), FILE_APPEND);
+    file_put_contents("/var/www/drupalvm/drupal/web/debug/film3.txt", print_r($json , TRUE), FILE_APPEND);
+  } catch (Exception $e) {
+    file_put_contents("/var/www/drupalvm/drupal/web/debug/film4.txt", print_r($e , TRUE), FILE_APPEND);
+  }
+}
