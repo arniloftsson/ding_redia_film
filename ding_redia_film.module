@@ -1,8 +1,8 @@
-<?php //
+<?php
 
 /**
  * @file
- * 
+ * Handles film from the libry film service.
  */
 
 
@@ -13,31 +13,19 @@ function ding_redia_film_menu()
   $items['film/redia'] = array(
     'title' => 'Redia Film',
     'page callback' => 'ding_redia_film_render',
-    //'page arguments' => array(1, 2, 3),
     'access arguments' => array('access content'),
-    //'type' => MENU_CALLBACK,
   );
 
   $items['film/redia/%'] = array(
     'title' => 'Redia Film',
-    'page callback' => 'ding_redia_film_render',
-    //'page arguments' => array(1, 2, 3),
+    'page callback' => 'ding_redia_film_render_film',
+    'page arguments' => array(2),
     'access arguments' => array('access content'),
-    //'type' => MENU_CALLBACK,
-  );
-
-  $items['film/redia/%/watch'] = array(
-    'title' => 'Redia Film',
-    'page callback' => 'ding_redia_film_render',
-    //'page arguments' => array(1, 2, 3),
-    'access arguments' => array('access content'),
-    //'type' => MENU_CALLBACK,
   );
 
   $items['film/redia/authenticate'] = array(
     'title' => 'Redia Film Authenticate',
     'page callback' => 'ding_redia_film_authenticate',
-    //'page arguments' => array(1, 2, 3),
     'access arguments' => array('access content'),
     'type' => MENU_CALLBACK,
   );
@@ -47,6 +35,10 @@ function ding_redia_film_menu()
 
 function ding_redia_film_render()
 {
+  $login_url = ding_redia_film_login_url();
+  $agency = variable_get('ting_agency', '');
+  $options = ' loginurl: "' . $login_url . '", agency: "' . $agency . '"';
+
   $content = '
   <div id="root"></div>
   <script
@@ -63,19 +55,51 @@ function ding_redia_film_render()
       ></script>
       <script>
     window.addEventListener("DOMContentLoaded", (event) => {
-  window.LibryFilm.init({ containerId: "root", baseUrl: "/film/redia" });
+    window.LibryFilm.init({ 
+      containerId: "root",
+      baseUrl: "/film/redia", 
+      bappsApiKey: "12481632",
+      bappsCustomerId: "bob",' .
+    $options . ' 
+    });
   });
   </script>
         ';
   return $content;
 }
 
-function ding_redia_film_authenticate()
+function ding_redia_film_render_film()
 {
+}
+
+/**
+ * Generate a login url which can be used as a prop for React apps.
+ *
+ * @return string
+ *   Login url.
+ */
+function ding_redia_film_login_url()
+{
+  return ding_provider_invoke(
+    'openplatform_token',
+    'login_url',
+    ['query' => ['destination' => '']]
+  );
+}
+
+
+function ding_redia_film_authenticate($user_id = '')
+{
+  // Ding Varnish will cache requests even for logged in users. Mark this
+  // page as not cacheable to bypass Varnish. Uses should not get each others
+  // token due to a cached response.
+  drupal_page_is_cacheable(FALSE);
+  global $user;
+
   $status = '';
   $film_service_token = null;
   // Check if the logged in user is a library user.
-  global $user;
+
   if (!user_is_logged_in()) {
     $status = 'not_logged_in';
   } elseif (!ding_user_is_provider_user($user)) {
@@ -83,23 +107,38 @@ function ding_redia_film_authenticate()
   } elseif (module_exists('connie')) {
     //Test 
     $status = 'test';
-    $token = "fb5ed8298704cdf4f8e521ba6926069fdfc5e6c5";
-    $user_id = "bob";
-    $film_service_token = ding_redia_film_get_film_service_token($token, $user_id);
-  } elseif (!module_exists('ding_adgangsplatformen')) {
-    $status = 'adgangsplatformen_not_enabled';
+    $film_service_token = ding_redia_film_handle_authentication("ballerupbib");
   } else {
-    $status = 'logged_in';
-    $token = ding_adgangsplatformen_openplatform_token_for_user();
+    $libry_token = ding_redia_film_handle_authentication($user_id);
+    if (isset($libry_token)) {
+      $status = 'logged_in';
+      $film_service_token = $libry_token;
+    } else {
+      $status = 'no_token';
+    }
   }
+
   $output = array('token' => $film_service_token, 'status' => $status);
   drupal_json_output($output);
 }
 
+function ding_redia_film_handle_authentication($user_id)
+{
+  if (module_exists('connie')) {
+    $token = "7425bce6440ce920e8e21d212c3c36c202d35532";
+  } else {
+    $token = ding_provider_invoke('openplatform_token', 'for_user');
+  }
+  global $user;
+  $creds = ding_user_get_creds();
+  //file_put_contents("/var/www/drupalvm/drupal/web/debug/film9.txt", print_r(json_encode($creds, JSON_PRETTY_PRINT), TRUE), FILE_APPEND);
+  $libry_token = ding_redia_film_get_film_service_token($token, $user_id);
+  return $libry_token;
+}
+
 function ding_redia_film_get_film_service_token($token, $user_id)
 {
-
-
+  $libry_token = NULL;
   try {
     $client = new \GuzzleHttp\Client();
     $jar = new \GuzzleHttp\Cookie\CookieJar;
@@ -113,20 +152,16 @@ function ding_redia_film_get_film_service_token($token, $user_id)
       ],
       'cookies' => $jar
     ];
-    file_put_contents("/var/www/drupalvm/drupal/web/debug/film5.txt", print_r(json_encode($options , JSON_PRETTY_PRINT) , TRUE), FILE_APPEND);
     $response = $client->post("https://bapps-be-staging.redia.dk/v2/", $options);
-    file_put_contents("/var/www/drupalvm/drupal/web/debug/film1.txt", print_r($response , TRUE), FILE_APPEND);
     $content = $response->getBody()->getContents();
 
     $jar->toArray();
-    file_put_contents("/var/www/drupalvm/drupal/web/debug/film6.txt", print_r($jar->toArray() , TRUE), FILE_APPEND);
 
-    file_put_contents("/var/www/drupalvm/drupal/web/debug/film2.txt", print_r($content , TRUE), FILE_APPEND);
-   
     $json = json_decode($content, true);
-    file_put_contents("/var/www/drupalvm/drupal/web/debug/film7.txt", print_r(json_encode($json , JSON_PRETTY_PRINT) , TRUE), FILE_APPEND);
-    file_put_contents("/var/www/drupalvm/drupal/web/debug/film3.txt", print_r($json , TRUE), FILE_APPEND);
+    //file_put_contents("/var/www/drupalvm/drupal/web/debug/film7.txt", print_r(json_encode($json, JSON_PRETTY_PRINT), TRUE), FILE_APPEND);
   } catch (Exception $e) {
-    file_put_contents("/var/www/drupalvm/drupal/web/debug/film4.txt", print_r($e , TRUE), FILE_APPEND);
   }
+  return $libry_token;
 }
+
+
