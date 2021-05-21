@@ -98,8 +98,8 @@ function ding_redia_film_authenticate($user_id = '')
 
   $status = '';
   $film_service_token = null;
-  // Check if the logged in user is a library user.
 
+  // Check if the logged in user is a library user.
   if (!user_is_logged_in()) {
     $status = 'not_logged_in';
   } elseif (!ding_user_is_provider_user($user)) {
@@ -124,16 +124,8 @@ function ding_redia_film_authenticate($user_id = '')
 
 function ding_redia_film_handle_authentication($user_id)
 {
-  if (module_exists('connie')) {
-    $token = "7425bce6440ce920e8e21d212c3c36c202d35532";
-  } else {
-    $token = ding_provider_invoke('openplatform_token', 'for_user');
-  }
-  global $user;
-  $creds = ding_user_get_creds();
-  //file_put_contents("/var/www/drupalvm/drupal/web/debug/film9.txt", print_r(json_encode($creds, JSON_PRETTY_PRINT), TRUE), FILE_APPEND);
-  $libry_token = ding_redia_film_get_film_service_token($token, $user_id);
-  return $libry_token;
+  $token = ding_provider_invoke('openplatform_token', 'for_user');
+  return ding_redia_film_get_film_service_token($token, $user_id);
 }
 
 function ding_redia_film_get_film_service_token($token, $user_id)
@@ -158,8 +150,13 @@ function ding_redia_film_get_film_service_token($token, $user_id)
     $jar->toArray();
 
     $json = json_decode($content, true);
-    //file_put_contents("/var/www/drupalvm/drupal/web/debug/film7.txt", print_r(json_encode($json, JSON_PRETTY_PRINT), TRUE), FILE_APPEND);
+    file_put_contents("/var/www/drupalvm/drupal/web/debug/film7.txt", print_r(json_encode($json, JSON_PRETTY_PRINT), TRUE), FILE_APPEND);
+    if (isset($json['result']) && isset($json['result']['session'])) {
+      $libry_token = $json['result']['session'];
+    }
   } catch (Exception $e) {
+    watchdog('ding_redia_film', 'Unable to retrieve token from Libry service: %message', array('%message' => $e->getMessage()), WATCHDOG_ERROR);
+    file_put_contents("/var/www/drupalvm/drupal/web/debug/film1.txt", print_r($e, TRUE), FILE_APPEND);
   }
   return $libry_token;
 }
