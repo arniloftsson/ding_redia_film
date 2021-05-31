@@ -5,10 +5,22 @@
  * Handles film from the libry film service.
  */
 
-
+/**
+ * Implements hook_menu().
+ */
 function ding_redia_film_menu()
 {
   $items = array();
+
+  $items['admin/config/ding/ding_redia_film'] = array(
+    'title' => 'Ding Redia Film',
+    'description' => 'Manage ding redia film module',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('ding_redia_film_admin_form'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'includes/ding_redia_film.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
 
   $items['film/redia'] = array(
     'title' => 'Redia Film',
@@ -23,9 +35,10 @@ function ding_redia_film_menu()
     'access arguments' => array('access content'),
   );
 
-  $items['film/redia/authenticate'] = array(
+  $items['film/redia/authenticate/%'] = array(
     'title' => 'Redia Film Authenticate',
     'page callback' => 'ding_redia_film_authenticate',
+    'page arguments' => array(3),
     'access arguments' => array('access content'),
     'type' => MENU_CALLBACK,
   );
@@ -33,6 +46,9 @@ function ding_redia_film_menu()
   return $items;
 }
 
+/**
+ * Renders reacts komponents.
+ */
 function ding_redia_film_render()
 {
   $login_url = ding_redia_film_login_url();
@@ -87,15 +103,20 @@ function ding_redia_film_login_url()
   );
 }
 
-
-function ding_redia_film_authenticate($user_id = '')
+/**
+ * Authenticates users with the libry film service.
+ * 
+ * @param string $customer_id
+ *   Id off the library which site the user is visting.
+ *
+ */
+function ding_redia_film_authenticate($customer_id = '')
 {
   // Ding Varnish will cache requests even for logged in users. Mark this
   // page as not cacheable to bypass Varnish. Uses should not get each others
   // token due to a cached response.
   drupal_page_is_cacheable(FALSE);
   global $user;
-
   $status = '';
   $film_service_token = null;
 
@@ -104,12 +125,8 @@ function ding_redia_film_authenticate($user_id = '')
     $status = 'not_logged_in';
   } elseif (!ding_user_is_provider_user($user)) {
     $status = 'not_library_user';
-  } elseif (module_exists('connie')) {
-    //Test 
-    $status = 'test';
-    $film_service_token = ding_redia_film_handle_authentication("ballerupbib");
-  } else {
-    $libry_token = ding_redia_film_handle_authentication($user_id);
+  }  else {
+    $libry_token = ding_redia_film_handle_authentication($customer_id);
     if (isset($libry_token)) {
       $status = 'logged_in';
       $film_service_token = $libry_token;
@@ -128,7 +145,20 @@ function ding_redia_film_handle_authentication($user_id)
   return ding_redia_film_get_film_service_token($token, $user_id);
 }
 
-function ding_redia_film_get_film_service_token($token, $user_id)
+
+/**
+ * Set additional parameters to ting request.
+ *
+ * @param string $token
+ *   Single sign on token.
+ *
+ * @param string $customer_id
+ *   Id off the library which site the user is visting.
+ *
+ * @return string $libry_token
+ *   Returns token from the libry service.
+ */
+function ding_redia_film_get_film_service_token($token, $customer_id)
 {
   $libry_token = NULL;
   try {
@@ -140,23 +170,23 @@ function ding_redia_film_get_film_service_token($token, $user_id)
         "jsonrpc" => "2.0",
         "id" => 1,
         "method" => "watch.webLogin",
-        "params" => ["12481632", $user_id, $token]
+        "params" => ["12481632", $customer_id, $token]
       ],
       'cookies' => $jar
     ];
-    $response = $client->post("https://bapps-be-staging.redia.dk/v2/", $options);
+    $film_service_server = variable_get('ding_redia_film_server', 'https://bapps-be-staging.redia.dk/v2/');
+    $response = $client->post($film_service_server , $options);
     $content = $response->getBody()->getContents();
 
     $jar->toArray();
 
     $json = json_decode($content, true);
-    file_put_contents("/var/www/drupalvm/drupal/web/debug/film7.txt", print_r(json_encode($json, JSON_PRETTY_PRINT), TRUE), FILE_APPEND);
+    //file_put_contents("/var/www/drupalvm/drupal/web/debug/film7.txt", print_r(json_encode($json, JSON_PRETTY_PRINT), TRUE), FILE_APPEND);
     if (isset($json['result']) && isset($json['result']['session'])) {
       $libry_token = $json['result']['session'];
     }
   } catch (Exception $e) {
     watchdog('ding_redia_film', 'Unable to retrieve token from Libry service: %message', array('%message' => $e->getMessage()), WATCHDOG_ERROR);
-    file_put_contents("/var/www/drupalvm/drupal/web/debug/film1.txt", print_r($e, TRUE), FILE_APPEND);
   }
   return $libry_token;
 }
