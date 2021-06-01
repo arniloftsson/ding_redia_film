@@ -28,13 +28,6 @@ function ding_redia_film_menu()
     'access arguments' => array('access content'),
   );
 
-  $items['film/redia/%'] = array(
-    'title' => 'Redia Film',
-    'page callback' => 'ding_redia_film_render_film',
-    'page arguments' => array(2),
-    'access arguments' => array('access content'),
-  );
-
   $items['film/redia/authenticate/%'] = array(
     'title' => 'Redia Film Authenticate',
     'page callback' => 'ding_redia_film_authenticate',
@@ -84,9 +77,6 @@ function ding_redia_film_render()
   return $content;
 }
 
-function ding_redia_film_render_film()
-{
-}
 
 /**
  * Generate a login url which can be used as a prop for React apps.
