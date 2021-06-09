@@ -28,10 +28,9 @@ function ding_redia_film_menu()
     'access arguments' => array('access content'),
   );
 
-  $items['film/redia/authenticate/%'] = array(
+  $items['film/redia/authenticate'] = array(
     'title' => 'Redia Film Authenticate',
     'page callback' => 'ding_redia_film_authenticate',
-    'page arguments' => array(3),
     'access arguments' => array('access content'),
     'type' => MENU_CALLBACK,
   );
@@ -100,39 +99,53 @@ function ding_redia_film_login_url()
  *   Id off the library which site the user is visting.
  *
  */
-function ding_redia_film_authenticate($customer_id = '')
+function ding_redia_film_authenticate()
 {
+  global $user;
+  $status = '';
+  $film_service_token = null;
+  $user_name = '';
+
   // Ding Varnish will cache requests even for logged in users. Mark this
   // page as not cacheable to bypass Varnish. Uses should not get each others
   // token due to a cached response.
   drupal_page_is_cacheable(FALSE);
-  global $user;
-  $status = '';
-  $film_service_token = null;
 
-  // Check if the logged in user is a library user.
-  if (!user_is_logged_in()) {
-    $status = 'not_logged_in';
-  } elseif (!ding_user_is_provider_user($user)) {
-    $status = 'not_library_user';
-  }  else {
-    $libry_token = ding_redia_film_handle_authentication($customer_id);
-    if (isset($libry_token)) {
-      $status = 'logged_in';
-      $film_service_token = $libry_token;
+  $parameters = drupal_get_query_parameters();
+
+  if (isset($parameters['customerid']) && isset($parameters['apikey'])) {
+    $customer_id = $parameters['customerid'];
+    $api_key = $parameters['apikey'];
+
+    // Check if the logged in user is a library user.
+    if (!user_is_logged_in()) {
+      $status = 'not_logged_in';
+    } elseif (!ding_user_is_provider_user($user)) {
+      $status = 'not_library_user';
     } else {
-      $status = 'no_token';
+      $libry_token = ding_redia_film_handle_authentication($customer_id, $api_key);
+      if (isset($libry_token)) {
+        $status = 'logged_in';
+        $film_service_token = $libry_token;
+        $creds = ding_user_get_creds();
+        if (isset($creds['name'])) {
+          $user_name = $creds['name'];
+        }
+      } else {
+        $status = 'no_token';
+      }
     }
+  } else {
+    $status = 'missing_parameters';
   }
-
-  $output = array('token' => $film_service_token, 'status' => $status);
+  $output = array('token' => $film_service_token, 'status' => $status, 'username' => $user_name);
   drupal_json_output($output);
 }
 
-function ding_redia_film_handle_authentication($user_id)
+function ding_redia_film_handle_authentication($user_id, $api_key)
 {
   $token = ding_provider_invoke('openplatform_token', 'for_user');
-  return ding_redia_film_get_film_service_token($token, $user_id);
+  return ding_redia_film_get_film_service_token($token, $user_id, $api_key);
 }
 
 
@@ -148,8 +161,9 @@ function ding_redia_film_handle_authentication($user_id)
  * @return string $libry_token
  *   Returns token from the libry service.
  */
-function ding_redia_film_get_film_service_token($token, $customer_id)
+function ding_redia_film_get_film_service_token($token, $customer_id, $api_key)
 {
+  //"12481632"
   $libry_token = NULL;
   try {
     $client = new \GuzzleHttp\Client();
@@ -160,12 +174,12 @@ function ding_redia_film_get_film_service_token($token, $customer_id)
         "jsonrpc" => "2.0",
         "id" => 1,
         "method" => "watch.webLogin",
-        "params" => ["12481632", $customer_id, $token]
+        "params" => [$api_key, $customer_id, $token]
       ],
       'cookies' => $jar
     ];
     $film_service_server = variable_get('ding_redia_film_server', 'https://bapps-be-staging.redia.dk/v2/');
-    $response = $client->post($film_service_server , $options);
+    $response = $client->post($film_service_server, $options);
     $content = $response->getBody()->getContents();
 
     $jar->toArray();
@@ -180,5 +194,3 @@ function ding_redia_film_get_film_service_token($token, $customer_id)
   }
   return $libry_token;
 }
-
-
