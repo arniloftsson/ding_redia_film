@@ -20,6 +20,12 @@ function ding_redia_film_admin_form($form, &$form_state) {
     '#default_value' => variable_get('ding_redia_film_server', 'https://bapps-be-staging.redia.dk/v2/'),
   );
 
+  $form['ding_redia_film_enable_logging'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable logging'),
+    '#default_value' => variable_get('ding_redia_film_enable_logging', FALSE),
+  );
+
   return system_settings_form($form);
 }
 

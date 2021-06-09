@@ -163,7 +163,6 @@ function ding_redia_film_handle_authentication($user_id, $api_key)
  */
 function ding_redia_film_get_film_service_token($token, $customer_id, $api_key)
 {
-  //"12481632"
   $libry_token = NULL;
   try {
     $client = new \GuzzleHttp\Client();
@@ -178,14 +177,17 @@ function ding_redia_film_get_film_service_token($token, $customer_id, $api_key)
       ],
       'cookies' => $jar
     ];
+    _ding_redia_film_debug_log('Call options to libry service: %options', array('%options' => json_encode($options)));
+
     $film_service_server = variable_get('ding_redia_film_server', 'https://bapps-be-staging.redia.dk/v2/');
     $response = $client->post($film_service_server, $options);
     $content = $response->getBody()->getContents();
 
     $jar->toArray();
-
     $json = json_decode($content, true);
-    //file_put_contents("/var/www/drupalvm/drupal/web/debug/film7.txt", print_r(json_encode($json, JSON_PRETTY_PRINT), TRUE), FILE_APPEND);
+
+    _ding_redia_film_debug_log('Response from libry service: %json', array('%json' => $content));
+    //file_put_contents("/var/www/drupalvm/drupal/web/debug/film7.txt", p(rint_rjson_encode($json, JSON_PRETTY_PRINT), TRUE), FILE_APPEND);
     if (isset($json['result']) && isset($json['result']['session'])) {
       $libry_token = $json['result']['session'];
     }
@@ -193,4 +195,18 @@ function ding_redia_film_get_film_service_token($token, $customer_id, $api_key)
     watchdog('ding_redia_film', 'Unable to retrieve token from Libry service: %message', array('%message' => $e->getMessage()), WATCHDOG_ERROR);
   }
   return $libry_token;
+}
+
+/**
+ * Log debug information to watchdog.
+ *
+ * @param string $message
+ *   Message to log.
+ * @param array $variables
+ *   Variables in the message.
+ */
+function _ding_redia_film_debug_log($message, array $variables = array()) {
+  if (variable_get('ding_redia_film_enable_logging', FALSE)) {
+    watchdog('ding_redia_film', $message, $variables, WATCHDOG_DEBUG);
+  }
 }
