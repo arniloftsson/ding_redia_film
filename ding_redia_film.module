@@ -13,7 +13,7 @@ function ding_redia_film_menu()
   $items = array();
 
   $items['admin/config/ding/ding_redia_film'] = array(
-    'title' => 'Ding Redia Film',
+    'title' => 'Libry Film Settings',
     'description' => 'Manage ding redia film module',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('ding_redia_film_admin_form'),
@@ -22,14 +22,14 @@ function ding_redia_film_menu()
     'type' => MENU_LOCAL_TASK,
   );
 
-  $items['film/redia'] = array(
-    'title' => 'Redia Film',
+  $items['film/libry'] = array(
+    'title' => 'Libry Film',
     'page callback' => 'ding_redia_film_render',
     'access arguments' => array('access content'),
   );
 
-  $items['film/redia/authenticate'] = array(
-    'title' => 'Redia Film Authenticate',
+  $items['film/libry/authenticate'] = array(
+    'title' => 'Libry Film Authenticate',
     'page callback' => 'ding_redia_film_authenticate',
     'access arguments' => array('access content'),
     'type' => MENU_CALLBACK,

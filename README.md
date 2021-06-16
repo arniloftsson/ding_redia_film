@@ -15,5 +15,5 @@ Click on the blue configuration icon to the right.
 
 Add following under "Stier":
 
-film/redia
-film/redia/*
+film/libry
+film/libry/*
