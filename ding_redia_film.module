@@ -65,7 +65,7 @@ function ding_redia_film_render()
     window.addEventListener("DOMContentLoaded", (event) => {
     window.LibryFilm.init({ 
       containerId: "root",
-      baseUrl: "/film/redia",' .
+      baseUrl: "/film/libry",' .
     $options . ' 
     });
   });
