@@ -185,7 +185,7 @@ function ding_redia_film_get_film_service_token($token, $customer_id, $api_key)
     $json = json_decode($content, true);
 
     _ding_redia_film_debug_log('Response from libry service: %json', array('%json' => $content));
-    //file_put_contents("/var/www/drupalvm/drupal/web/debug/film7.txt", p(rint_rjson_encode($json, JSON_PRETTY_PRINT), TRUE), FILE_APPEND);
+
     if (isset($json['result']) && isset($json['result']['session'])) {
       $libry_token = $json['result']['session'];
     }
