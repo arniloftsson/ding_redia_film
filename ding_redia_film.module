@@ -5,47 +5,54 @@
  * Handles film from the libry film service.
  */
 
+use GuzzleHttp\Client;
+use GuzzleHttp\Cookie\CookieJar;
+
+define('DING_REDIA_FILM_SERVER', 'https://bapps-be-staging.redia.dk/v2/');
+
 /**
  * Implements hook_menu().
  */
-function ding_redia_film_menu()
-{
-  $items = array();
+function ding_redia_film_menu() {
+  $items = [];
 
-  $items['admin/config/ding/ding_redia_film'] = array(
+  $items['admin/config/ding/ding_redia_film'] = [
     'title' => 'Libry Film Settings',
     'description' => 'Manage ding redia film module',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('ding_redia_film_admin_form'),
-    'access arguments' => array('administer site configuration'),
+    'page arguments' => ['ding_redia_film_admin_form'],
+    'access arguments' => ['administer site configuration'],
     'file' => 'includes/ding_redia_film.admin.inc',
     'type' => MENU_LOCAL_TASK,
-  );
+  ];
 
-  $items['film/libry'] = array(
+  $items['film/libry'] = [
     'title' => 'Libry Film',
     'page callback' => 'ding_redia_film_render',
-    'access arguments' => array('access content'),
-  );
+    'access arguments' => ['access content'],
+  ];
 
-  $items['film/libry/authenticate'] = array(
+  $items['film/libry/authenticate'] = [
     'title' => 'Libry Film Authenticate',
     'page callback' => 'ding_redia_film_authenticate',
-    'access arguments' => array('access content'),
+    'access arguments' => ['access content'],
     'type' => MENU_CALLBACK,
-  );
+  ];
 
   return $items;
 }
 
 /**
- * Renders reacts komponents.
+ * Renders reacts components.
  */
-function ding_redia_film_render()
-{
+function ding_redia_film_render() {
   $login_url = ding_redia_film_login_url();
   $agency = variable_get('ting_agency', '');
   $options = ' loginurl: "' . $login_url . '", agency: "' . $agency . '"';
+
+  // @TODO: You should not load react/react-dom here it should be part of the application build by Redia. Also to
+  //        prevent new release of the CMS when react is updated in the application.
+  // @TODO: This should be moved into a template and render array returned.
 
   $content = '
   <div id="root"></div>
@@ -81,8 +88,8 @@ function ding_redia_film_render()
  * @return string
  *   Login url.
  */
-function ding_redia_film_login_url()
-{
+function ding_redia_film_login_url() {
+  // @TODO: Should check which provider provides token and not hardcode openplatform.
   return ding_provider_invoke(
     'openplatform_token',
     'login_url',
@@ -92,17 +99,14 @@ function ding_redia_film_login_url()
 
 /**
  * Authenticates users with the libry film service.
- * 
- * @param string $customer_id
- *   Id off the library which site the user is visting.
  *
+ * Outputs JSON response with token, status message and username
  */
-function ding_redia_film_authenticate()
-{
+function ding_redia_film_authenticate() {
   global $user;
-  $status = '';
+
   $film_service_token = null;
-  $user_name = '';
+  $username = '';
 
   // Ding Varnish will cache requests even for logged in users. Mark this
   // page as not cacheable to bypass Varnish. Uses should not get each others
@@ -127,7 +131,7 @@ function ding_redia_film_authenticate()
         $film_service_token = $libry_token;
         $creds = ding_user_get_creds();
         if (isset($creds['name'])) {
-          $user_name = $creds['name'];
+          $username = $creds['name'];
         }
       } else {
         $status = 'no_token';
@@ -136,13 +140,24 @@ function ding_redia_film_authenticate()
   } else {
     $status = 'missing_parameters';
   }
-  $output = array('token' => $film_service_token, 'status' => $status, 'username' => $user_name);
+
+  $output = ['token' => $film_service_token, 'status' => $status, 'username' => $username];
   drupal_json_output($output);
 }
 
-function ding_redia_film_handle_authentication($user_id, $api_key)
-{
+/**
+ * @TODO: Missing description...
+ *
+ * @param $user_id
+ *
+ * @param $api_key
+ *
+ * @return string|null
+ */
+function ding_redia_film_handle_authentication($user_id, $api_key) {
+  // @TODO: Should check which provider provides token and not hardcode openplatform.
   $token = ding_provider_invoke('openplatform_token', 'for_user');
+
   return ding_redia_film_get_film_service_token($token, $user_id, $api_key);
 }
 
@@ -159,12 +174,12 @@ function ding_redia_film_handle_authentication($user_id, $api_key)
  * @return string $libry_token
  *   Returns token from the libry service.
  */
-function ding_redia_film_get_film_service_token($token, $customer_id, $api_key)
-{
+function ding_redia_film_get_film_service_token($token, $customer_id, $api_key) {
   $libry_token = NULL;
+
   try {
-    $client = new \GuzzleHttp\Client();
-    $jar = new \GuzzleHttp\Cookie\CookieJar;
+    $client = new Client();
+    $jar = new CookieJar();
 
     $options = [
       'json' => [
@@ -175,22 +190,23 @@ function ding_redia_film_get_film_service_token($token, $customer_id, $api_key)
       ],
       'cookies' => $jar
     ];
-    _ding_redia_film_debug_log('Call options to libry service: %options', array('%options' => json_encode($options)));
+    _ding_redia_film_debug_log('Call options to libry service: %options', ['%options' => json_encode($options)]);
 
-    $film_service_server = variable_get('ding_redia_film_server', 'https://bapps-be-staging.redia.dk/v2/');
+    $film_service_server = variable_get('ding_redia_film_server', DING_REDIA_FILM_SERVER);
     $response = $client->post($film_service_server, $options);
     $content = $response->getBody()->getContents();
 
     $jar->toArray();
     $json = json_decode($content, true);
 
-    _ding_redia_film_debug_log('Response from libry service: %json', array('%json' => $content));
+    _ding_redia_film_debug_log('Response from libry service: %json', ['%json' => $content]);
 
     if (isset($json['result']) && isset($json['result']['session'])) {
       $libry_token = $json['result']['session'];
     }
   } catch (Exception $e) {
-    watchdog('ding_redia_film', 'Unable to retrieve token from Libry service: %message', array('%message' => $e->getMessage()), WATCHDOG_ERROR);
+    // @TODO: Is the user informed that something went wrong?
+    watchdog('ding_redia_film', 'Unable to retrieve token from Libry service: %message', ['%message' => $e->getMessage()], WATCHDOG_ERROR);
   }
   return $libry_token;
 }
@@ -203,7 +219,8 @@ function ding_redia_film_get_film_service_token($token, $customer_id, $api_key)
  * @param array $variables
  *   Variables in the message.
  */
-function _ding_redia_film_debug_log($message, array $variables = array()) {
+function _ding_redia_film_debug_log($message, array $variables = []) {
+  // @TODO: Missing ding_redia_film.install with hook_uninstall to clean up variables.
   if (variable_get('ding_redia_film_enable_logging', FALSE)) {
     watchdog('ding_redia_film', $message, $variables, WATCHDOG_DEBUG);
   }
