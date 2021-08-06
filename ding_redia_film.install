@@ -1,0 +1,16 @@
+<?php
+
+/**
+ * @file
+ * Handles installation/un-installation of ding redia film module.
+ */
+
+ /**
+ * Implements hook_uninstall().
+ */
+function ding_redia_film_uninstall() {
+  // Unset variables.
+  variable_del('ding_redia_film_enable_logging');
+}
+
+ 

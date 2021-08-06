@@ -11,8 +11,6 @@
 function ding_redia_film_admin_form($form, &$form_state) {
   $form = [];
 
-  // @TODO: Missing ding_redia_film.install with hook_uninstall to clean up variables.
-
   $form['ding_redia_film_server'] = [
     '#type' => 'textfield',
     '#title' => t('Film service server'),
