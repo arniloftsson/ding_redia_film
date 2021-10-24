@@ -23,7 +23,7 @@ function ding_redia_film_menu() {
     'page arguments' => ['ding_redia_film_admin_form'],
     'access arguments' => ['administer site configuration'],
     'file' => 'includes/ding_redia_film.admin.inc',
-    'type' => MENU_LOCAL_TASK,
+    'type' => MENU_NORMAL_ITEM,
   ];
 
   $items['film/libry'] = [
