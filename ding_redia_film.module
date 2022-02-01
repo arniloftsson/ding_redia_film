@@ -5,8 +5,6 @@
  * Handles film from the libry film service.
  */
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Cookie\CookieJar;
 
 define('DING_REDIA_FILM_SERVER', 'https://bapps-be-staging.redia.dk/v2/');
 
@@ -60,15 +58,43 @@ function ding_redia_film_theme($existing, $type, $theme, $path)
  * Renders reacts components.
  */
 function ding_redia_film_render() {
-  $login_url = ding_redia_film_login_url();
+
   $agency = variable_get('ting_agency', '');
-  $options = ' loginurl: "' . $login_url . '", agency: "' . $agency . '"';
+  _ding_redia_film_get_client();
 
-  // @TODO: You should not load react/react-dom here it should be part of the application build by Redia. Also to
-  //        prevent new release of the CMS when react is updated in the application.
 
-  return theme('ding_redia_film_init', ['options' => $options]);
+ 
+
+  return "test";
 }
+
+/**
+ * Get Film service client.
+ *
+ * @return \RediaFilmRequest|NULL
+ *   Client to communicate with the service or NULL if not configured.
+ */
+function _ding_redia_film_get_client() {
+  static $client;
+
+  if (!isset($client)) {
+
+    $log_debug = variable_get('ding_redia_film_enable_logging', FALSE);
+    $logger = new RediaFilmLogger('ding_redia_film', $log_debug);
+    $url = variable_get('ding_redia_film_server', DING_REDIA_FILM_SERVER);
+    $api_key = '12481632';
+
+    if (isset($url) && isset($api_key)) {
+      $client = new RediaFilmRequest($url, $api_key, $logger);
+    }
+    else {
+      watchdog('ding_redia_film', 'The ding_redia_film module is missing its configuration', NULL, WATCHDOG_ERROR);
+    }
+  }
+
+  return $client;
+}
+
 
 
 /**
@@ -144,57 +170,11 @@ function ding_redia_film_authenticate() {
  */
 function ding_redia_film_handle_authentication($user_id, $api_key) {
   $token = ding_provider_invoke('openplatform_token', 'for_user');
-  return ding_redia_film_get_film_service_token($token, $user_id, $api_key);
+  //return ding_redia_film_get_film_service_token($token, $user_id, $api_key);
 }
 
 
-/**
- * Set additional parameters to ting request.
- *
- * @param string $token
- *   Single sign on token.
- *
- * @param string $customer_id
- *   Id off the library which site the user is visting.
- *
- * @return string $libry_token
- *   Returns token from the libry service.
- */
-function ding_redia_film_get_film_service_token($token, $customer_id, $api_key) {
-  $libry_token = NULL;
 
-  try {
-    $client = new Client();
-    $jar = new CookieJar();
-
-    $options = [
-      'json' => [
-        "jsonrpc" => "2.0",
-        "id" => 1,
-        "method" => "watch.webLogin",
-        "params" => [$api_key, $customer_id, $token]
-      ],
-      'cookies' => $jar
-    ];
-    _ding_redia_film_debug_log('Call options to libry service: %options', ['%options' => json_encode($options)]);
-
-    $film_service_server = variable_get('ding_redia_film_server', DING_REDIA_FILM_SERVER);
-    $response = $client->post($film_service_server, $options);
-    $content = $response->getBody()->getContents();
-
-    $jar->toArray();
-    $json = json_decode($content, true);
-
-    _ding_redia_film_debug_log('Response from libry service: %json', ['%json' => $content]);
-
-    if (isset($json['result']) && isset($json['result']['session'])) {
-      $libry_token = $json['result']['session'];
-    }
-  } catch (Exception $e) {
-    watchdog('ding_redia_film', 'Unable to retrieve token from Libry service: %message', ['%message' => $e->getMessage()], WATCHDOG_ERROR);
-  }
-  return $libry_token;
-}
 
 /**
  * Log debug information to watchdog.

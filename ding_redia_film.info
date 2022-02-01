@@ -3,5 +3,7 @@ description = Add Redia film to site
 package = Ding!
 version = "7.x-0.26"
 core = 7.x
+files[] = src/RediaFilmLogger.php
+files[] = src/RediaFilmRequest.php
 dependencies[] = ding_provider
 dependencies[] = ding_libs
