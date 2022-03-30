@@ -60,11 +60,7 @@ function ding_redia_film_theme($existing, $type, $theme, $path)
 function ding_redia_film_render() {
 
   $agency = variable_get('ting_agency', '');
-  _ding_redia_film_get_client();
-
-
- 
-
+  //_ding_redia_film_get_client();
   return "test";
 }
 

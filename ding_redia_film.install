@@ -6,6 +6,42 @@
  */
 
  /**
+ * Implements hook_install().
+ */
+function ding_redia_film_install() {
+  // There is no hook we can use so we interact directly with ctools module.
+  if (module_exists('ctools')) {
+    $access  = [];
+    $argument = 'site_template*site_template_search_blank';
+
+    // A direct call to page_manager_task_handler_ctools_access_get causes a strange error in panels_everwhere module.
+    // So we take a part off that code and make the calls our selves.
+    $page = page_manager_get_page_cache('site_template');
+    $handler = $page->handlers['site_template_search_blank'];
+
+    if (isset($handler->conf['access'])) {
+      $access  = $handler->conf['access'];
+      if (isset($access['plugins'])) {
+        if (isset($access['plugins'][0]['settings']) && isset($access['plugins'][0]['settings']['paths'])) {
+          $paths = $access['plugins'][0]['settings']['paths'] ;
+          $paths = trim ($paths);
+          $access['plugins'][0]['settings']['paths'] = $paths . "\nfilm/libry";
+        }
+      }
+    }
+    page_manager_task_handler_ctools_access_set($argument, $access);
+
+    // We get the page cache again to save the changes to the database
+    $page = page_manager_get_page_cache('site_template');
+    $handler = $page->handlers['site_template_search_blank'];
+    page_manager_save_task_handler($handler);
+    page_manager_clear_page_cache('site_template');
+  }
+}
+
+
+
+ /**
  * Implements hook_uninstall().
  */
 function ding_redia_film_uninstall() {
