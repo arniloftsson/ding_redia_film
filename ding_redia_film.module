@@ -24,15 +24,15 @@ function ding_redia_film_menu() {
     'type' => MENU_NORMAL_ITEM,
   ];
 
-  $items['film/libry'] = [
-    'title' => 'Libry Film',
-    'page callback' => 'ding_redia_film_render',
+  $items['film/libry/watch/%'] = [
+    'title' => 'Libry Film watch',
+    'page callback' => 'ding_redia_film_watch',
     'access arguments' => ['access content'],
   ];
 
-  $items['film/libry/authenticate'] = [
-    'title' => 'Libry Film Authenticate',
-    'page callback' => 'ding_redia_film_authenticate',
+  $items['film/libry/watchtrailer/%'] = [
+    'title' => 'Libry Film watch trailer',
+    'page callback' => 'ding_redia_film_watch_trailer',
     'access arguments' => ['access content'],
     'type' => MENU_CALLBACK,
   ];
@@ -55,13 +55,62 @@ function ding_redia_film_theme($existing, $type, $theme, $path)
   }
 
 /**
- * Renders reacts components.
+ * Watch film.
  */
-function ding_redia_film_render() {
+function ding_redia_film_watch() {
 
   $agency = variable_get('ting_agency', '');
   //_ding_redia_film_get_client();
-  return "test";
+  return "watch";
+}
+
+/**
+ * Watch film trailer.
+ */
+function ding_redia_film_watch_trailer() {
+
+  $agency = variable_get('ting_agency', '');
+  //_ding_redia_film_get_client();
+  return "watch trailer";
+}
+
+/**
+ * Implements hook_ding_entity_buttons().
+ */
+function ding_redia_film_ding_entity_buttons($type, $entity, $view_mode, $widget = 'default') {
+  $buttons = [];
+  file_put_contents("/var/www/drupalvm/drupal/web/debug/film3.txt", print_r($type , TRUE), FILE_APPEND);
+  if ($type == 'ding_entity') {
+        $watch_button = [
+          '#theme' => 'link',
+          '#text' => t('Watch film'),
+          '#path' => 'film/libry/watch/' . $entity->id,
+          '#options' => [
+            'attributes' => [
+              'class' => [
+                'action-button',
+                'watch-button',
+              ],
+            ],
+            'html' => FALSE,
+          ],
+          '#attached' => [
+            'library' => [
+              ['system', 'drupal.ajax'],
+            ],
+          ],
+        ];
+
+        $buttons[] = $watch_button;
+
+        $trailer_button = $watch_button;
+        $trailer_button['#text'] = t('Watch trailer');
+        $trailer_button['#path'] = 'film/libry/watchtrailer/' . $entity->id;
+        $trailer_button['#options']['attributes']['class'] = ['action-button', 'watch-trailer-button'];
+        $buttons[] = $trailer_button;
+
+  }
+  return $buttons;
 }
 
 /**

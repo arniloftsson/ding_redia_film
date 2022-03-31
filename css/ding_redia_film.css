@@ -1,0 +1,9 @@
+.ting-object.view-mode-full .watch-button {
+  background-color: #000;
+  color: #fff;
+  
+}
+
+.ting-object.view-mode-full .watch-button, .ting-object.view-mode-full .watch-trailer-button {
+  text-decoration: none;
+}
