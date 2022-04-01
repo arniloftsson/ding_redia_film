@@ -45,7 +45,7 @@ class RediaFilmLogger
    * @param string $customerId
    *   Redia specifik customerid.
    */
-  public function logError(string $message, array $variables) {
+  public function logError(string $message, array $variables = []) {
       watchdog($this->type, $message, $variables, WATCHDOG_ERROR);
   }
 

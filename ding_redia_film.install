@@ -25,7 +25,7 @@ function ding_redia_film_install() {
         if (isset($access['plugins'][0]['settings']) && isset($access['plugins'][0]['settings']['paths'])) {
           $paths = $access['plugins'][0]['settings']['paths'] ;
           $paths = trim ($paths);
-          $access['plugins'][0]['settings']['paths'] = $paths . "\nfilm/libry";
+          $access['plugins'][0]['settings']['paths'] = $paths . "\nfilm/libry/watch/*\nfilm/libry/watchtrailer/*";
         }
       }
     }

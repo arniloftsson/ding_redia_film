@@ -5,6 +5,7 @@
  * Handles film from the libry film service.
  */
 
+use FBS\Model\Login;
 
 define('DING_REDIA_FILM_SERVER', 'https://bapps-be-staging.redia.dk/v2/');
 
@@ -37,6 +38,13 @@ function ding_redia_film_menu() {
     'type' => MENU_CALLBACK,
   ];
 
+  $items['film/libry/checkout/%ting_object'] = [
+    'page callback' => 'ding_redia_film_checkout_ajax',
+    'page arguments' => [3],
+    'delivery callback' => 'ajax_deliver',
+    'access arguments' => ['access content'],
+  ];
+
   return $items;
 }
 
@@ -57,10 +65,76 @@ function ding_redia_film_theme($existing, $type, $theme, $path)
 /**
  * Watch film.
  */
+function ding_redia_film_checkout_ajax($ting_object) {
+  $commands = array();
+
+  // Check if the logged-in user is a library user.
+  global $user;
+  if (!user_is_logged_in()) {
+    // Trigger log-in (the reservation link will be triggered on success).
+    $commands[] = ajax_command_ding_user_authenticate('');
+  }
+  elseif (!ding_user_is_provider_user($user)) {
+    // Error not library user.
+    $commands[] = ajax_command_ding_popup('ding_redia_film', t('Error'), '<p>' . t('Only library user can watch films.') . '</p>');
+  }
+  elseif (false) {
+    // Check if resident.
+    $commands[] = ajax_command_ding_popup('ding_redia_film', t('Error'), '<p>' . t('Only residents in the municipal user can watch films.') . '</p>');
+  }
+  else {
+    // Try to make reservation.
+    // Start off customized section.
+    try {
+      file_put_contents("/var/www/drupalvm/drupal/web/debug/film4.txt", print_r($ting_object , TRUE), FILE_APPEND);
+      file_put_contents("/var/www/drupalvm/drupal/web/debug/film5.txt", print_r("Ramt" , TRUE), FILE_APPEND);
+      $commands[] = ajax_command_ding_popup('ding_redia_film', t('Watch film'), 'Test');
+      // $reservable = new DingReservationReservableEntity($entity);
+      // if ($fast != null) {
+      //   $interest_period = variable_get('ding_custom_reservation_secondary_reservation_button_interest_period', 60);
+      //   $form_state = [];
+      //   $form_state['values']['provider_options']['interest_period'] = $interest_period;
+      //   $form_state['values']['reservation_type'] = DING_CUSTOM_RESERVATION_SECONDARY_BUTTON;
+
+      //   drupal_form_submit('ding_reservation_reserve_form', $form_state, $reservable);
+      //   $status_messages = theme('status_messages');
+      //   $commands[] = ajax_command_ding_popup('ding_reservation', t('Reservation'), $status_messages, array('refresh' => TRUE));
+      // } else {
+      //   $form = ding_provider_get_form('ding_reservation_reserve_form', $reservable, FALSE);
+      //   $commands[] = ajax_command_ding_popup('ding_reservation', t('Reservation'), render($form));
+      // }
+      // End off customized section.
+    }
+    catch (DingProviderAuthException $exception) {
+      // The form may have thrown an Auth exception, so display login. (the
+      // checkout link will be triggered on success).
+      $commands[] = ajax_command_ding_user_authenticate('');
+    }
+    catch (Exception $exception) {
+      // The form may have thrown an auth exception as the login may have
+      // timed-out.
+      // TODO check this (the reservation link will be triggered on success).
+      $commands[] = ajax_command_ding_popup('ding_redia_film', t('Error'), '<p>' . t('Unknown error in trying to watch film, please contact the library.') . '</p>');
+
+      // Log exception.
+      watchdog_exception('ding_redia_film', $exception);
+    }
+  }
+
+  // Return the ajax commands as an render array.
+  return array('#type' => 'ajax', '#commands' => $commands);
+}
+
+/**
+ * Watch film.
+ */
 function ding_redia_film_watch() {
 
   $agency = variable_get('ting_agency', '');
-  //_ding_redia_film_get_client();
+
+  $client = _ding_redia_film_get_client();
+  $session = $client->login("dYUvEdnrlDwfrkiaXBryPbCheMGzQOtsdOmZGbbB");
+  file_put_contents("/var/www/drupalvm/drupal/web/debug/redia5.txt", print_r($session, TRUE), FILE_APPEND);
   return "watch";
 }
 
@@ -84,12 +158,13 @@ function ding_redia_film_ding_entity_buttons($type, $entity, $view_mode, $widget
         $watch_button = [
           '#theme' => 'link',
           '#text' => t('Watch film'),
-          '#path' => 'film/libry/watch/' . $entity->id,
+          '#path' => 'film/libry/checkout/' . $entity->id,
           '#options' => [
             'attributes' => [
               'class' => [
                 'action-button',
                 'watch-button',
+                'use-ajax',
               ],
             ],
             'html' => FALSE,
@@ -128,9 +203,12 @@ function _ding_redia_film_get_client() {
     $logger = new RediaFilmLogger('ding_redia_film', $log_debug);
     $url = variable_get('ding_redia_film_server', DING_REDIA_FILM_SERVER);
     $api_key = '12481632';
+    $agency = 'DK-775100'; //variable_get('ting_agency', '');
+    $version = "2";
+    $language = "en";
 
     if (isset($url) && isset($api_key)) {
-      $client = new RediaFilmRequest($url, $api_key, $logger);
+      $client = new RediaFilmRequest($url, $api_key, $logger, $agency, $version, $language);
     }
     else {
       watchdog('ding_redia_film', 'The ding_redia_film module is missing its configuration', NULL, WATCHDOG_ERROR);
