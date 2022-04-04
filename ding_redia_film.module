@@ -55,12 +55,30 @@ function ding_redia_film_menu() {
 function ding_redia_film_theme($existing, $type, $theme, $path)
 {
   return[
-    'ding_redia_film_init' => [
-      'variables' => ['options' => NULL],
-      'template' => 'ding-redia-film-init',
+    'ding_redia_film_checkout' => [
+      'variables' => [
+        'checkout_confirmation' => '',
+        'checkout_status' => '',
+        'checkout_yes_button' => '',
+        'checkout_cancel_button' => '',
+        'watch_link' => '',
+      ],
+      'template' => 'ding-redia-film-checkout',
       'path' => $path . '/templates',]
     ];
   }
+
+  /**
+ * Implements hook_ctools_plugin_directory().
+ *
+ * It simply tells panels where to find the .inc files that define various
+ * args, contexts, content_types.
+ */
+function ding_redia_film_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'ctools' && !empty($plugin)) {
+    return "plugins/$plugin";
+  }
+}
 
 /**
  * Watch film.
@@ -86,24 +104,8 @@ function ding_redia_film_checkout_ajax($ting_object) {
     // Try to make reservation.
     // Start off customized section.
     try {
-      file_put_contents("/var/www/drupalvm/drupal/web/debug/film4.txt", print_r($ting_object , TRUE), FILE_APPEND);
-      file_put_contents("/var/www/drupalvm/drupal/web/debug/film5.txt", print_r("Ramt" , TRUE), FILE_APPEND);
-      $commands[] = ajax_command_ding_popup('ding_redia_film', t('Watch film'), 'Test');
-      // $reservable = new DingReservationReservableEntity($entity);
-      // if ($fast != null) {
-      //   $interest_period = variable_get('ding_custom_reservation_secondary_reservation_button_interest_period', 60);
-      //   $form_state = [];
-      //   $form_state['values']['provider_options']['interest_period'] = $interest_period;
-      //   $form_state['values']['reservation_type'] = DING_CUSTOM_RESERVATION_SECONDARY_BUTTON;
-
-      //   drupal_form_submit('ding_reservation_reserve_form', $form_state, $reservable);
-      //   $status_messages = theme('status_messages');
-      //   $commands[] = ajax_command_ding_popup('ding_reservation', t('Reservation'), $status_messages, array('refresh' => TRUE));
-      // } else {
-      //   $form = ding_provider_get_form('ding_reservation_reserve_form', $reservable, FALSE);
-      //   $commands[] = ajax_command_ding_popup('ding_reservation', t('Reservation'), render($form));
-      // }
-      // End off customized section.
+      $html = _ding_redia_film_create_checkout_popup($ting_object);
+      $commands[] = ajax_command_ding_popup('ding_redia_film', t('Watch film'), $html);
     }
     catch (DingProviderAuthException $exception) {
       // The form may have thrown an Auth exception, so display login. (the
@@ -128,15 +130,40 @@ function ding_redia_film_checkout_ajax($ting_object) {
 /**
  * Watch film.
  */
+function _ding_redia_film_create_checkout_popup($ting_object) {
+  file_put_contents("/var/www/drupalvm/drupal/web/debug/film6.txt", print_r($ting_object->getid(),  TRUE), FILE_APPEND);
+  $used_loans = 1;
+  $number_off_loans = 2;
+  $checkout_confirmation = t('Do you want to loan the film for 2 days');
+  $replacements = ['%used_loans' =>  $used_loans, '%number_off_loans' =>  $number_off_loans];
+  $checkout_status = t('If you loan the film you have used %used_loans loans out of %number_off_loans loans within 30 days', $replacements);
+  $checkout_yes_button = t('Yes');
+  $checkout_cancel_button = t('Cancel');
+  $watch_link = '/film/libry/watch/' . $ting_object->id;
+
+  $variables = [
+    'checkout_confirmation' => $checkout_confirmation,
+    'checkout_status' => $checkout_status,
+    'checkout_yes_button' => $checkout_yes_button,
+    'checkout_cancel_button' => $checkout_cancel_button,
+    'watch_link' => $watch_link
+  ];
+
+  return theme('ding_redia_film_checkout', $variables);
+}
+
+/**
+ * Watch film.
+ */
 function ding_redia_film_watch() {
 
-  $agency = variable_get('ting_agency', '');
+  // $client = _ding_redia_film_get_client();
+  // $session = $client->login("dYUvEdnrlDwfrkiaXBryPbCheMGzQOtsdOmZGbbB");
+  // file_put_contents("/var/www/drupalvm/drupal/web/debug/redia5.txt", print_r($session, TRUE), FILE_APPEND);
 
-  $client = _ding_redia_film_get_client();
-  $session = $client->login("dYUvEdnrlDwfrkiaXBryPbCheMGzQOtsdOmZGbbB");
-  file_put_contents("/var/www/drupalvm/drupal/web/debug/redia5.txt", print_r($session, TRUE), FILE_APPEND);
-  return "watch";
+  return 'watch';
 }
+
 
 /**
  * Watch film trailer.
@@ -153,37 +180,42 @@ function ding_redia_film_watch_trailer() {
  */
 function ding_redia_film_ding_entity_buttons($type, $entity, $view_mode, $widget = 'default') {
   $buttons = [];
-  file_put_contents("/var/www/drupalvm/drupal/web/debug/film3.txt", print_r($type , TRUE), FILE_APPEND);
+  file_put_contents("/var/www/drupalvm/drupal/web/debug/film3.txt", print_r($type, TRUE), FILE_APPEND);
   if ($type == 'ding_entity') {
-        $watch_button = [
-          '#theme' => 'link',
-          '#text' => t('Watch film'),
-          '#path' => 'film/libry/checkout/' . $entity->id,
-          '#options' => [
-            'attributes' => [
-              'class' => [
-                'action-button',
-                'watch-button',
-                'use-ajax',
-              ],
-            ],
-            'html' => FALSE,
+    $watch_button = [
+      '#theme' => 'link',
+      '#text' => t('Watch film'),
+      '#path' => 'film/libry/checkout/' . $entity->id,
+      '#options' => [
+        'attributes' => [
+          'class' => [
+            'action-button',
+            'watch-button',
+            'use-ajax',
           ],
-          '#attached' => [
-            'library' => [
-              ['system', 'drupal.ajax'],
-            ],
+        ],
+        'html' => FALSE,
+      ],
+      '#attached' => [
+        'library' => [
+          ['system', 'drupal.ajax'],
+        ],
+        'js' => [
+          [
+            'type' => 'file',
+            'data' => drupal_get_path('module', 'ding_redia_film') . '/js/ding_redia_film.js',
           ],
-        ];
+        ],
+      ],
+    ];
 
-        $buttons[] = $watch_button;
+    $buttons[] = $watch_button;
 
-        $trailer_button = $watch_button;
-        $trailer_button['#text'] = t('Watch trailer');
-        $trailer_button['#path'] = 'film/libry/watchtrailer/' . $entity->id;
-        $trailer_button['#options']['attributes']['class'] = ['action-button', 'watch-trailer-button'];
-        $buttons[] = $trailer_button;
-
+    $trailer_button = $watch_button;
+    $trailer_button['#text'] = t('Watch trailer');
+    $trailer_button['#path'] = 'film/libry/watchtrailer/' . $entity->id;
+    $trailer_button['#options']['attributes']['class'] = ['action-button', 'watch-trailer-button'];
+    $buttons[] = $trailer_button;
   }
   return $buttons;
 }

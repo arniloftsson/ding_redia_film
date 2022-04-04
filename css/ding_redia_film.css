@@ -7,3 +7,11 @@
 .ting-object.view-mode-full .watch-button, .ting-object.view-mode-full .watch-trailer-button {
   text-decoration: none;
 }
+
+.redia-film-checkout p {
+  margin-bottom: 10px;
+}
+
+.redia-film-checkout a {
+  margin-right: 10px;
+}
