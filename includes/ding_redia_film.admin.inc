@@ -24,6 +24,27 @@ function ding_redia_film_admin_form($form, &$form_state) {
     '#default_value' => variable_get('ding_redia_film_enable_logging', FALSE),
   ];
 
+  $form['revert_config'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Revert configuration'),
+    '#description' => t('Reverts the configuration after a update off DDBCMS has overridden them. Needs to be done every time DDBCMS is updated'),
+  );
+
+  $form['revert_config']['submit_button'] = [
+    '#value' => t('Revert configuration'),
+    '#type' => 'submit',
+    '#submit' => ['ding_redia_film_revert_configuration'],
+  ];
+
   return system_settings_form($form);
+}
+
+/**
+ * Revert configuration to default.
+ */
+function ding_redia_film_revert_configuration($form, &$form_state) {
+  ding_redia_film_add_site_template_config();
+  ding_redia_film_add_film_loan_panes(); 
+  drupal_set_message(t('Libry film configuration reverted'));
 }
 

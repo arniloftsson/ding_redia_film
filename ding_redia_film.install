@@ -9,108 +9,11 @@
  * Implements hook_install().
  */
 function ding_redia_film_install() {
-  // There is no hook we can use so we interact directly with ctools module.
-  if (module_exists('ctools')) {
-    $access  = [];
-    $argument = 'site_template*site_template_search_blank';
-
-    $page = page_manager_get_page_cache('site_template');
-    $handler = $page->handlers['site_template_search_blank'];
-
-    if (isset($handler->conf['access'])) {
-      $access  = $handler->conf['access'];
-      if (isset($access['plugins'])) {
-        if (isset($access['plugins'][0]['settings']) && isset($access['plugins'][0]['settings']['paths'])) {
-          $paths = $access['plugins'][0]['settings']['paths'];
-          $paths = trim($paths);
-          $access['plugins'][0]['settings']['paths'] = $paths . "\nfilm/libry/watch/*\nfilm/libry/watchtrailer/*";
-        }
-      }
-    }
-    page_manager_task_handler_ctools_access_set($argument, $access);
-
-    // We get the page cache again to save the changes to the database
-    $page = page_manager_get_page_cache('site_template');
-    $handler = $page->handlers['site_template_search_blank'];
-    page_manager_save_task_handler($handler);
-    page_manager_clear_page_cache('site_template');
-
-
-    // Add our panels to user loan page.
-    ctools_get_plugins('page_manager', 'task_handlers', 'panel_context');
-    $page = page_manager_get_page_cache('page');
-
-    $handler = $page->handlers['page_user_loans_panel_context'];
-    $display = panels_panel_context_get_display($handler);
-    $panes = ding_redia_film_loan_panes();
-    $display->add_pane($panes['film_loans']);
-    $display->add_pane($panes['film_status']);
-    panels_save_display($display);
-  }
+  //TODO featuere revert
+  ding_redia_film_add_site_template_config();
+  ding_redia_film_add_film_loan_panes(); 
 }
 
-/**
- * Watch film trailer.
- */
-function ding_redia_film_loan_panes() {
-  $panes = [];
-  $pane = new stdClass();
-  $pane->uuid = ctools_uuid_generate();
-  $pane->pid = 'new-' . $pane->uuid;
-  $pane->panel = 'main_content';
-  $pane->type = 'libryloans';
-  $pane->subtype = 'libryloans';
-  $pane->shown = TRUE;
-  $pane->access = [];
-  $pane->configuration = [
-    'context' => 'argument_entity_id:user_1',
-    'override_title' => 0,
-    'override_title_text' => '',
-    'override_title_heading' => 'h2',
-  ];
-  $pane->cache = [];
-  $pane->style = [
-    'settings' => NULL,
-  ];
-  $pane->css = [
-    'css_id' => '',
-    'css_class' => 'default-account-panel-layout',
-  ];
-  $pane->extras = [];
-  $pane->position = 1;
-  $pane->locks = '';
-
-  $panes['film_loans'] = $pane;
-
-  $pane = new stdClass();
-  $pane->uuid = ctools_uuid_generate();
-  $pane->pid = 'new-' . $pane->uuid;
-  $pane->panel = 'main_content';
-  $pane->type = 'librystatus';
-  $pane->subtype = 'librystatus';
-  $pane->shown = TRUE;
-  $pane->access = [];
-  $pane->configuration = [
-    'context' => 'argument_entity_id:user_1',
-    'override_title' => 0,
-    'override_title_text' => '',
-    'override_title_heading' => 'h2',
-  ];
-  $pane->cache = [];
-  $pane->style = [
-    'settings' => NULL,
-  ];
-  $pane->css = [
-    'css_id' => '',
-    'css_class' => 'default-account-panel-layout',
-  ];
-  $pane->extras = [];
-  $pane->position = 2;
-  $pane->locks = '';
-
-  $panes['film_status'] = $pane;
-  return $panes;
-}
 
  /**
  * Implements hook_uninstall().
