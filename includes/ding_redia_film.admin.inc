@@ -43,8 +43,13 @@ function ding_redia_film_admin_form($form, &$form_state) {
  * Revert configuration to default.
  */
 function ding_redia_film_revert_configuration($form, &$form_state) {
-  ding_redia_film_add_site_template_config();
-  ding_redia_film_add_film_loan_panes(); 
-  drupal_set_message(t('Libry film configuration reverted'));
+  try {
+    ding_redia_film_add_site_template_config();
+    ding_redia_film_add_film_loan_panes();
+    drupal_set_message(t('Libry film configuration reverted'));
+  } catch (Exception $e) {
+    watchdog_exception('ding_redia_film', $e);
+    drupal_set_message(t('Failed to revert Libry film configuration'));
+  }
 }
 

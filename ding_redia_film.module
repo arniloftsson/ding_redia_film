@@ -401,7 +401,7 @@ function ding_redia_film_add_film_loan_panes() {
     } else {
       // If we can't find the handler that means the configuration is in the code and 
       // not in the database. So we need to find in a different way.
-      
+
       // We need to call this so the page_manager_page_load_all() works.
       $task = page_manager_get_task('page');
       $subtasks = page_manager_page_load_all();
