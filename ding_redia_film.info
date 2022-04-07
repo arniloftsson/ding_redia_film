@@ -7,6 +7,7 @@ files[] = src/RediaFilmLogger.php
 files[] = src/RediaFilmRequest.php
 files[] = src/RediaFilmUser.php
 files[] = src/RediaFilmObject.php
+files[] = src/RediaFilmAbstractObject.php
 stylesheets[all][] = css/ding_redia_film.css
 dependencies[] = ding_provider
 dependencies[] = ding_libs

@@ -9,22 +9,10 @@
 /**
  * Class RediaFilmObject.
  */
-class RediaFilmObject
+class RediaFilmObject extends RediaFilmAbstractObject
 {
-  private $client;
   private $response_object;
   private $identifier;
-
-
-  /**
-   * RediaFilmObject constructor.
-   *
-   * @param RediaFilmRequest $client
-   *   The service endpoint for digital article service.
-   */
-  public function __construct(RediaFilmRequest $client) {
-    $this->client = $client;
-  }
 
     /**
    * Creates a loan at the service. The user must be logged in.

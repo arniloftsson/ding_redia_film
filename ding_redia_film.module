@@ -104,8 +104,8 @@ function ding_redia_film_checkout_ajax($ting_object) {
     // Try to make reservation.
     // Start off customized section.
     try {
-      $html = _ding_redia_film_create_checkout_popup($ting_object);
-      $commands[] = ajax_command_ding_popup('ding_redia_film', t('Watch film'), $html);
+      $checkout = ding_redia_film_can_user_checkout($ting_object);
+      $commands[] = ajax_command_ding_popup('ding_redia_film', t($checkout['title']), $checkout['html']);
     }
     catch (DingProviderAuthException $exception) {
       // The form may have thrown an Auth exception, so display login. (the
@@ -130,13 +130,60 @@ function ding_redia_film_checkout_ajax($ting_object) {
 /**
  * Watch film.
  */
-function _ding_redia_film_create_checkout_popup($ting_object) {
-  file_put_contents("/var/www/drupalvm/drupal/web/debug/film6.txt", print_r($ting_object->getid(),  TRUE), FILE_APPEND);
-  $used_loans = 1;
-  $number_off_loans = 2;
+function ding_redia_film_can_user_checkout($ting_object) {
+  $checkout = [];
+  $client = _ding_redia_film_get_client();
+  $redia_user = new RediaFilmUser($client);
+  $is_loggedin = $redia_user->login("dYUvEdnrlDwfrkiaXBryPbCheMGzQOtsdOmZGbbB");
+  if (!$is_loggedin) {
+    $checkout['title'] = 'Error';
+    $checkout['html'] = '<p>' . t('Cant log in to the film service.') . '</p>';
+    return $checkout;
+  }
+
+  $user_status = $redia_user->getUserEligble();
+  if (!$user_status) {
+    $checkout['title'] = 'Error';
+    $checkout['html'] = '<p>' . t('Cant get credentials') . '</p>';
+    return $checkout;
+  }
+  file_put_contents("/var/www/drupalvm/drupal/web/debug/checkout5.txt", print_r($redia_user, TRUE), FILE_APPEND);
+  if ($redia_user->isElligble) {
+    return ding_redia_film_create_checkout_popup($ting_object, $redia_user);
+  } else {
+    return ding_redia_film_user_not_elligble_popup($redia_user);
+  }
+}
+
+/**
+ * Watch film.
+ */
+function ding_redia_film_user_not_elligble_popup($redia_user) {
+  $checkout = [];
+  $replacements = [
+    '%used_loans' =>  $redia_user->currentLoanCount,
+    '%number_of_loans' =>  $redia_user->maxNumberOfLoans,
+    '%period' =>$redia_user->loanDuration,
+    '%next_loan_date' =>$redia_user->nextLoanDate,
+  ];
+  $text = t('You cant loan the film. You have used %used_loans loans out of %number_of_loans loans within %period days. Next date you can loan is %next_loan_date', $replacements);
+  $checkout['title'] = 'Error';
+  $checkout['html'] = '<p>' . $text  . '</p>';;
+  return $checkout;
+}
+
+/**
+ * Watch film.
+ */
+function ding_redia_film_create_checkout_popup($ting_object, $redia_user) {
+  $checkout = [];
   $checkout_confirmation = t('Do you want to loan the film for 2 days');
-  $replacements = ['%used_loans' =>  $used_loans, '%number_off_loans' =>  $number_off_loans];
-  $checkout_status = t('If you loan the film you have used %used_loans loans out of %number_off_loans loans within 30 days', $replacements);
+  $replacements = [
+    '%used_loans' =>  $redia_user->currentLoanCount,
+    '%number_of_loans' =>  $redia_user->maxNumberOfLoans,
+    '%period' =>$redia_user->loanDuration,
+  ];
+  $checkout_status = t('If you loan the film you have used %used_loans loans out of %number_of_loans loans within %period days', $replacements);
   $checkout_yes_button = t('Yes');
   $checkout_cancel_button = t('Cancel');
   $watch_link = '/film/libry/watch/' . $ting_object->id;
@@ -149,17 +196,19 @@ function _ding_redia_film_create_checkout_popup($ting_object) {
     'watch_link' => $watch_link
   ];
 
-  return theme('ding_redia_film_checkout', $variables);
+  $checkout['title'] = 'Watch film';
+  $checkout['html'] = theme('ding_redia_film_checkout', $variables);
+  return $checkout;
 }
 
 /**
  * Watch film.
  */
 function ding_redia_film_watch() {
-
-  // $client = _ding_redia_film_get_client();
-  // $session = $client->login("dYUvEdnrlDwfrkiaXBryPbCheMGzQOtsdOmZGbbB");
-  // file_put_contents("/var/www/drupalvm/drupal/web/debug/redia5.txt", print_r($session, TRUE), FILE_APPEND);
+  $client = _ding_redia_film_get_client();
+  $redia_user = new RediaFilmUser($client);
+  $session = $redia_user->login("dYUvEdnrlDwfrkiaXBryPbCheMGzQOtsdOmZGbbB");
+  file_put_contents("/var/www/drupalvm/drupal/web/debug/redia5.txt", print_r($session, TRUE), FILE_APPEND);
 
   return 'watch';
 }
