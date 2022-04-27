@@ -21,7 +21,7 @@ class RediaFilmObjects extends RediaFilmAbstractObject
    *   The film service user.
    */
   public function createLoan(RediaFilmUser $user, RediaFilmObject $object) {
-    $response = $this->client->createLoan($object->id, $user);
+    $response = $this->client->createLoan($object->id, $user->getSessionid());
     
     file_put_contents("/var/www/drupalvm/drupal/web/debug/create1.txt", print_r($response , TRUE), FILE_APPEND);
   }
@@ -85,7 +85,7 @@ class RediaFilmObjects extends RediaFilmAbstractObject
    */
   public function getToken(RediaFilmUser $user) {
     $token = null;
-    $response = $this->client->getToken($user);
+    $response = $this->client->getToken($user->getSessionid());
     if ($this->hasResult($response)) {
       $data = $this->getData($response);
       if (isset($data['token'])) {

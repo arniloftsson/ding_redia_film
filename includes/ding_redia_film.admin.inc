@@ -14,8 +14,29 @@ function ding_redia_film_admin_form($form, &$form_state) {
   $form['ding_redia_film_server'] = [
     '#type' => 'textfield',
     '#title' => t('Film service server'),
-    '#description' => t('Url off the film service server. Eg. !server', ['!server' => DING_REDIA_FILM_SERVER]),
-    '#default_value' => variable_get('ding_redia_film_server', DING_REDIA_FILM_SERVER),
+    '#description' => t('Url off the film service server. Eg. !server', ['!server' => 'https://bapps-be-staging.redia.dk/v2/']),
+    '#default_value' => variable_get('ding_redia_film_server', 'https://bapps-be-staging.redia.dk/v2/'),
+  ];
+
+  $form['ding_redia_film_api_key'] = [
+    '#type' => 'textfield',
+    '#title' => t('Film service server api key'),
+    '#description' => t('Api key off the film service server'),
+    '#default_value' => variable_get('ding_redia_film_api_key', ''),
+  ];
+
+  $form['ding_redia_film_version'] = [
+    '#type' => 'textfield',
+    '#title' => t('Film service server version'),
+    '#description' => t('Version key off the film service server. E.g ios_3.1.3'),
+    '#default_value' => variable_get('ding_redia_film_version', 'ios_3.1.3'),
+  ];
+
+  $form['ding_redia_film_language'] = [
+    '#type' => 'textfield',
+    '#title' => t('Film service server language'),
+    '#description' => t('Language off the film service server. Either "en" or "da"'),
+    '#default_value' => variable_get('ding_redia_film_language', 'en'),
   ];
 
   $form['ding_redia_film_enable_logging'] = [

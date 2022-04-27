@@ -5,9 +5,6 @@
  * Handles film from the libry film service.
  */
 
-use FBS\Model\Login;
-
-define('DING_REDIA_FILM_SERVER', 'https://bapps-be-staging.redia.dk/v2/');
 
 /**
  * Implements hook_menu().
@@ -237,14 +234,14 @@ function ding_redia_film_watch() {
   $token = 'dYUvEdnrlDwfrkiaXBryPbCheMGzQOtsdOmZGbbB';
   $status = $redia_user->login($token);
   $elligbible = $redia_user->getUserEligble();
-  // $libry_object = new RediaFilmObjects($client);
-  // $object = $libry_object->getObject('187922471992');
-  // $object->token = $libry_object->getToken($redia_user);
-  //$libry_object->createLoan($redia_user, $object);
+  $libry_object = new RediaFilmObjects($client);
+  $object = $libry_object->getObject('187922471992');
+  $object->token = $libry_object->getToken($redia_user);
+  $libry_object->createLoan($redia_user, $object);
   file_put_contents("/var/www/drupalvm/drupal/web/debug/login4.txt", print_r($object, TRUE), FILE_APPEND);
   //file_put_contents("/var/www/drupalvm/drupal/web/debug/login3.txt", print_r($elligbible, TRUE), FILE_APPEND);
-  $customerid = $client->getCustomerId();
-  file_put_contents("/var/www/drupalvm/drupal/web/debug/login5.txt", print_r($customerid , TRUE), FILE_APPEND);
+  //$customerid = $client->getCustomerId();
+  //file_put_contents("/var/www/drupalvm/drupal/web/debug/login5.txt", print_r($customerid , TRUE), FILE_APPEND);
   file_put_contents("/var/www/drupalvm/drupal/web/debug/film1.txt", print_r(theme('ding_redia_film_watch', ['object' => $object]), TRUE), FILE_APPEND);
   return theme('ding_redia_film_watch', ['object' => $object]);
 }
@@ -318,13 +315,13 @@ function _ding_redia_film_get_client() {
 
     $log_debug = variable_get('ding_redia_film_enable_logging', FALSE);
     $logger = new RediaFilmLogger('ding_redia_film', $log_debug);
-    $url = variable_get('ding_redia_film_server', DING_REDIA_FILM_SERVER);
-    $api_key = '12481632';
+    $url = variable_get('ding_redia_film_server', 'https://bapps-be-staging.redia.dk/v2/');
+    $api_key = variable_get('ding_redia_film_api_key', ''); // '12481632';
     $agency = 'DK-775100'; //variable_get('ting_agency', '');
-    $version = "ios_3.1.3";
-    $language = "en";
+    $version = variable_get('ding_redia_film_version', 'ios_3.1.3');
+    $language = variable_get('ding_redia_film_language', 'en');
 
-    if (isset($url) && isset($api_key)) {
+    if (isset($url) && isset($api_key) && isset($version) && isset($agency) && isset($language)) {
       $customer_id = cache_get('ding_redia_film_customer_id');
       if (!$customer_id) {
         $client = new RediaFilmRequest($url, $api_key, $logger, $agency, $version, $language);

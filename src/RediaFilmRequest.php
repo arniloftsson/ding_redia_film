@@ -87,9 +87,6 @@ class RediaFilmRequest
    *   The response from the film service.
    */
   public function login(string $dbc_token) {
-    // if (!(isset($this->customerId))) {
-    //   $this->customerId = $this->getCustomerId();
-    // }
     $params = [];
     $params[] = $this->apikey;
     $params[] = $this->customerId; 
@@ -109,10 +106,6 @@ class RediaFilmRequest
     */
   public function getObject(array $identifiers) {
     $params = [];
-
-    if (!(isset($this->customerId))) {
-        $this->customerId = $this->getCustomerId();
-    }
 
     $params[] = $this->apikey;
     $params[] = $this->version;
@@ -135,12 +128,8 @@ class RediaFilmRequest
    * @return array $response
    *   The response from the film service.
    */
-  public function createLoan(string $identifier, RediaFilmUser $user) {
+  public function createLoan(string $identifier, string $sessionId) {
     $params = [];
-
-    if (!(isset($this->customerId))) {
-        $this->customerId = $this->getCustomerId();
-    }
 
     $params[] = $this->apikey;
     $params[] = $this->version;
@@ -148,7 +137,7 @@ class RediaFilmRequest
     $params[] = $this->customerId;
     $params[] = $identifier;
 
-    return $this->filmServiceRequest('watch.checkout', $params, $user->getSessionid());
+    return $this->filmServiceRequest('watch.checkout', $params, $sessionId);
   }
 
   /**
@@ -162,10 +151,6 @@ class RediaFilmRequest
    */
   public function getLoans(string $session_id) {
     $params = [];
-
-    if (!(isset($this->customerId))) {
-        $this->customerId = $this->getCustomerId();
-    }
 
     $params[] = $this->apikey;
     $params[] = $this->version;
@@ -187,10 +172,6 @@ class RediaFilmRequest
   public function getUserEligble(string $session_id) {
     $params = [];
 
-    if (!(isset($this->customerId))) {
-        $this->customerId = $this->getCustomerId();
-    }
-
     $params[] = $this->apikey;
     $params[] = $this->version;
     $params[] = $this->language;
@@ -208,19 +189,15 @@ class RediaFilmRequest
    * @return array $session //TODO
    *   The session id from the service or null if there is a error.
    */
-  public function getToken(RediaFilmUser $user) {
+  public function getToken(string $sessionId) {
     $params = [];
-
-    if (!(isset($this->customerId))) {
-        $this->customerId = $this->getCustomerId();
-    }
 
     $params[] = $this->apikey;
     $params[] = $this->version;
     $params[] = $this->language;
     $params[] = $this->customerId;
   
-    return $this->filmServiceRequest('watch.getToken', $params, $user->getSessionid());
+    return $this->filmServiceRequest('watch.getToken', $params, $sessionId);
   }
 
   /**
