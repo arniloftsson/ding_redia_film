@@ -21,7 +21,7 @@ class RediaFilmRequest
   private $agency_id;
   private $version;
   private $language;
-  private $customerId = 'bob';
+  private $customerId = '';
 
 
   /**
@@ -36,19 +36,24 @@ class RediaFilmRequest
    * @param string $agency_id
    *   The id off the agency.
    */
-  public function __construct(string $url, string $apikey, RediaFilmLogger $logger, string $agency_id, string $version, string $language) {
+  public function __construct(string $url, string $apikey, RediaFilmLogger $logger, string $agency_id, string $version, string $language, string $customerId = null) {
     $this->url = $url;
     $this->apikey= $apikey;
     $this->logger = $logger;
     $this->agency_id = $agency_id;
     $this->version = $version;
     $this->language = $language;
+    if (isset($customerId)) {
+      $this->customerId = $customerId;
+    } else {
+      $this->getCustomerIdFromService();
+    }
   }
 
   /**
    * Gets the customerid from the service.
    */
-  private function getCustomerId() {
+  private function getCustomerIdFromService() {
     $params = [];
     $params[] = $this->apikey;
     $params[] = $this->version;
@@ -56,6 +61,20 @@ class RediaFilmRequest
     $params[] = $this->agency_id;
     $response = $this->filmServiceRequest('watch.getLibraryDetails', $params);
     file_put_contents("/var/www/drupalvm/drupal/web/debug/redia2.txt", print_r($response , TRUE), FILE_APPEND);
+    if (isset($response['result']) &&  isset($response['result']['data']) && isset($response['result']['data']['customerId'])) {
+      $this->customerId = $response['result']['data']['customerId'];
+    } else {
+      $this->status_message = 'Couldnt get the customerid from the film service';
+      $this->logger->logError('Couldnt get the customerid from the film service: %response', ['%response' => print_r($response, TRUE)]);
+    }
+  }
+
+  public function setCustomerId(string $customerId) {
+    $this->customerId = $customerId;
+  }
+
+  public function getCustomerId() {
+   return  $this->customerId;
   }
 
   /**
@@ -73,7 +92,7 @@ class RediaFilmRequest
     // }
     $params = [];
     $params[] = $this->apikey;
-    $params[] = 'bob';
+    $params[] = $this->customerId; 
     $params[] = $dbc_token;
 
     return $this->filmServiceRequest('watch.webLogin', $params);
@@ -88,7 +107,7 @@ class RediaFilmRequest
     * @return array $response
     *   The response from the film service.
     */
-  public function getObject(string $identifier) {
+  public function getObject(array $identifiers) {
     $params = [];
 
     if (!(isset($this->customerId))) {
@@ -99,7 +118,7 @@ class RediaFilmRequest
     $params[] = $this->version;
     $params[] = $this->language;
     $params[] = $this->customerId;
-    $params[] = $identifier;
+    $params[] = $identifiers;
 
     return $this->filmServiceRequest('watch.getObjects', $params);
   }
@@ -189,7 +208,7 @@ class RediaFilmRequest
    * @return array $session //TODO
    *   The session id from the service or null if there is a error.
    */
-  public function getToken(string $session_id) {
+  public function getToken(RediaFilmUser $user) {
     $params = [];
 
     if (!(isset($this->customerId))) {
@@ -201,7 +220,7 @@ class RediaFilmRequest
     $params[] = $this->language;
     $params[] = $this->customerId;
   
-    return $this->filmServiceRequest('watch.getToken', $params, $session_id);
+    return $this->filmServiceRequest('watch.getToken', $params, $user->getSessionid());
   }
 
   /**
@@ -219,11 +238,9 @@ class RediaFilmRequest
    * @return array $json
    *   Returns json_decoded response.
    */
-  function filmServiceRequest($method, $params, $cookie = false) {
+  function filmServiceRequest($method, $params, $cookie = null) {
     try {
       $client = new Client();
-      $jar = new CookieJar();
-
       $options = [
         'json' => [
           "jsonrpc" => "2.0",
@@ -231,8 +248,13 @@ class RediaFilmRequest
           "method" => $method,
           "params" => $params
         ],
-        //'cookies' => $jar
       ];
+      if (isset($cookie)) {
+        $values = ['PHPSESSID' => $cookie];
+        $domain = parse_url($this->url);
+        $cookieJar = \GuzzleHttp\Cookie\CookieJar::fromArray($values, $domain['host']);
+        $options['cookies'] = $cookieJar;
+      }
       file_put_contents("/var/www/drupalvm/drupal/web/debug/redia1.txt", print_r($options , TRUE), FILE_APPEND);
       file_put_contents("/var/www/drupalvm/drupal/web/debug/redia3.txt", print_r(json_encode($options['json']) , TRUE), FILE_APPEND);
       //$jar->toArray();

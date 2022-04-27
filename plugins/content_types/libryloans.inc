@@ -22,10 +22,9 @@ function ding_redia_film_libryloans_content_type_render($subtype, $conf, $panel_
   $block->module = 'ding_redia_film';
   $block->delta = 'libryloans';
   $block->title = t('Film loan list');
+  $loans = ding_redia_film_get_loans(); 
 
-
-  $block->content = t('You do not currently have any loans.');
-
+  $block->content = $loans;
 
   return $block;
 }

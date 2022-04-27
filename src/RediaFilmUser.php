@@ -74,6 +74,7 @@ class RediaFilmUser extends RediaFilmAbstractObject
       $this->status_message = 'Couldnt log user in to the film service';
       $this->logger->logError('Couldnt log the user in to the service: %response', ['%response' => print_r($response, TRUE)]);
     }
+    file_put_contents("/var/www/drupalvm/drupal/web/debug/login2.txt", print_r($this->session_id, TRUE), FILE_APPEND);
     return $this->is_loggedin;
   }
 
@@ -84,14 +85,36 @@ class RediaFilmUser extends RediaFilmAbstractObject
    *   The session id from the service or null if there is a error.
    */
   public function getLoans() {
-    $response = $this->client->getLoans($this->session_id);
+    $libry_loans = [];
+    $ids = [];
+    $response = $this->testloans(); // $this->client->getLoans($this->session_id);
     if ($this->hasResult($response)) {
-      $this->loans = $this->getData($response);
+      $loans = $this->getData($response);
+      foreach ($loans as $loan) {
+        if (isset($loan['identifier'])) {
+          $ids[] = $loan['identifier'];
+        }
+      }
+      $objects = new RediaFilmObjects($this->client);
+      $libry_loans = $objects->getObjects($ids);
+
+      file_put_contents("/var/www/drupalvm/drupal/web/debug/loans1.txt", print_r( $ids , TRUE), FILE_APPEND);    
+      foreach ($loans as $loan) {
+        if (isset($loan['identifier']) && isset($libry_loans[$loan['identifier']])) {
+          $id = $loan['identifier'];
+          $libry_loans[$id]->loanDate = isset($loan['loanDate']) ? date('d-m-Y', $loan['loanDate']) : '';
+          $libry_loans[$id]->expireDate = isset($loan['expireDate']) ? date('d-m-Y', $loan['expireDate']) : '';
+          $libry_loans[$id]->progress = isset($loan['progress']) ? $loan['progress'] : 0;
+        }
+      }
+      file_put_contents("/var/www/drupalvm/drupal/web/debug/loans2.txt", print_r( $libry_loans , TRUE), FILE_APPEND);
+
     } else {
       $this->status_message = 'Couldnt get the loans for the user from film service';
       $this->logger->logError('Couldnt get the loans for the user from film service: %response', ['%response' => print_r($response, TRUE)]);
     }
     file_put_contents("/var/www/drupalvm/drupal/web/debug/redia2.txt", print_r($response , TRUE), FILE_APPEND);
+    return $libry_loans;
   }
 
  /**
@@ -101,7 +124,7 @@ class RediaFilmUser extends RediaFilmAbstractObject
    *   The session id from the service or null if there is a error.
    */
   public function getUserEligble() {
-    $response = $this->teststatus();//$this->client->getUserEligble($this->session_id);
+    $response = $this->client->getUserEligble($this->session_id);
     file_put_contents("/var/www/drupalvm/drupal/web/debug/checkout3.txt", print_r($response , TRUE), FILE_APPEND);
 
     if ($this->hasResult($response)) {
@@ -116,44 +139,57 @@ class RediaFilmUser extends RediaFilmAbstractObject
       return true;
     } else {
       $this->status_message = 'Couldnt check the users status from the from film service';
-      $this->logger->logError('Couldnt get the loans for the user from film service: %response', ['%response' => print_r($response, TRUE)]);
+      //$this->logger->logError('Couldnt get the loans for the user from film service: %response', ['%response' => print_r($response, TRUE)]);
       return false;
     }
   }
 
- /**
-   * Gets the token from the service in order to watch the film. The user must be logged in.
-   * 
-   * @param string $session_id
-   *   The session id.
-   * 
-   * @return array $session //TODO
-   *   The session id from the service or null if there is a error.
-   */
-  public function getToken() {
-    $response = $this->client->getToken($this->session_id);
-    file_put_contents("/var/www/drupalvm/drupal/web/debug/redia2.txt", print_r($response , TRUE), FILE_APPEND);
-  }
 
-  function teststatus() {
+
+
+  function testloans() {
     $res = '{ 
       "jsonrpc": "2.0", 
       "id": 11, 
       "result": { 
       "result": true, 
       "session": "g6i2srbu5q4a0gfvrfur702470", 
-      "data": { 
-      "maxNumberOfLoans": 10000, 
-      "currentLoanCount": 0, 
-      "currentReservedCount": 0, 
-      "loanDuration": 30, 
-      "nextLoanDate": 1642602569 
-      }, 
+      "data": [ 
+      { 
+      "loanId": 
+      "http://data.entitlement.theplatform.eu/eds/data/Entitlement/265555656", 
+      "identifier": "187922471992", 
+      "loanDate": 1642602702, 
+      "expireDate": 1645281102, 
+      "orderId": 
+      "http://order.commerce.theplatform.eu/order/data/OrderItem/1245308425", 
+      "progress": 0 
+      },{
+      "loanId": 
+      "http://data.entitlement.theplatform.eu/eds/data/Entitlement/265555656", 
+      "identifier": "187922471993", 
+      "loanDate": 1642602702, 
+      "expireDate": 1645281102, 
+      "orderId": 
+      "http://order.commerce.theplatform.eu/order/data/OrderItem/1245308425", 
+      "progress": 0 
+      },{
+      "loanId": 
+      "http://data.entitlement.theplatform.eu/eds/data/Entitlement/265555656", 
+      "identifier": "187922471994", 
+      "loanDate": 1642602702, 
+      "expireDate": 1645281102, 
+      "orderId": 
+      "http://order.commerce.theplatform.eu/order/data/OrderItem/1245308425", 
+      "progress": 0 
+      }
+      ], 
       "message": "", 
       "language": "en", 
       "code": 0 
       } 
-      }      
+      }
+           
   ';
     return json_decode($res, true);
   }

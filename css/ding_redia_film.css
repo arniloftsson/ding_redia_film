@@ -1,7 +1,6 @@
 .ting-object.view-mode-full .watch-button {
   background-color: #000;
   color: #fff;
-  
 }
 
 .ting-object.view-mode-full .watch-button, .ting-object.view-mode-full .watch-trailer-button {
@@ -14,4 +13,41 @@
 
 .redia-film-checkout a {
   margin-right: 10px;
+}
+
+.redia-film-item {
+  display: flex;
+  margin-bottom: 15px;
+  padding: 15px;
+}
+
+.material-item.redia-film-item { 
+  padding: 20px;
+}
+
+.redia-film-object-cover {
+  width: 20%;
+  margin-right: 20px;
+}
+
+.redia-film-object-content {
+  width: 47%;
+  display: flex;
+  flex-direction: column;
+}
+
+.redia-film-object-actions {
+  width: 30%;
+}
+
+.redia-film-object-actions .watch-button {
+  background-color: #000;
+  color: #fff;
+}
+
+.redia-film-loan-status {
+  display: flex;
+  justify-content: space-between;
+  margin-right: 30px;
+  margin-top: 20px;
 }
