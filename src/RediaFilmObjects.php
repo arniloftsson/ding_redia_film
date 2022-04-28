@@ -64,6 +64,10 @@ class RediaFilmObjects extends RediaFilmAbstractObject
           $libry_object->title = isset($item_data['title']) ? $item_data['title'] : null;
           $libry_object->creators = isset($item_data['creators']) ? $item_data['creators'] : null;
           $libry_object->info = $item_data;
+          if (isset($item_data['media']) && isset($item_data['media']['trailers'])) {
+            $libry_object->trailers = $item_data['media']['trailers'];
+          }
+
           $libry_objects[$key] = $libry_object;
         }      
       }

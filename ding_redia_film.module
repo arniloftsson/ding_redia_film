@@ -71,6 +71,14 @@ function ding_redia_film_theme($existing, $type, $theme, $path) {
       'path' => $path . '/templates',
     ],
 
+    'ding_redia_film_trailer' => [
+      'variables' => [
+        'trailers' => null,
+      ],
+      'template' => 'ding-redia-film-trailer',
+      'path' => $path . '/templates',
+    ],
+
     'ding_redia_film_loan' => [
       'variables' => [
         'loan' => null,
@@ -251,10 +259,22 @@ function ding_redia_film_watch() {
  * Watch film trailer.
  */
 function ding_redia_film_watch_trailer() {
-
-  $agency = variable_get('ting_agency', '');
-  //_ding_redia_film_get_client();
-  return "watch trailer";
+  $trailers = [];
+  $client = _ding_redia_film_get_client();
+  $libry_object = new RediaFilmObjects($client);
+  $object = $libry_object->getObject('187922471992');
+  if (isset($object->trailers)) {
+    foreach ($object->trailers as $trailer) {
+      if ($trailer['format'] == 'MPEG4') { //Todo are there other formats?
+        $trailers[] = [
+          'source' => $trailer['watchUrl'],
+          'format' => 'video/mp4',
+        ];
+      }
+    }
+  }
+  
+  return theme('ding_redia_film_trailer', ['trailers' => $trailers]);
 }
 
 /**
