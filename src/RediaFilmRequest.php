@@ -60,7 +60,7 @@ class RediaFilmRequest
     $params[] = $this->language;
     $params[] = $this->agency_id;
     $response = $this->filmServiceRequest('watch.getLibraryDetails', $params);
-    file_put_contents("/var/www/drupalvm/drupal/web/debug/redia2.txt", print_r($response , TRUE), FILE_APPEND);
+    //file_put_contents("/var/www/drupalvm/drupal/web/debug/redia2.txt", print_r($response , TRUE), FILE_APPEND);
     if (isset($response['result']) &&  isset($response['result']['data']) && isset($response['result']['data']['customerId'])) {
       $this->customerId = $response['result']['data']['customerId'];
     } else {
@@ -232,9 +232,8 @@ class RediaFilmRequest
         $cookieJar = \GuzzleHttp\Cookie\CookieJar::fromArray($values, $domain['host']);
         $options['cookies'] = $cookieJar;
       }
-      file_put_contents("/var/www/drupalvm/drupal/web/debug/redia1.txt", print_r($options , TRUE), FILE_APPEND);
-      file_put_contents("/var/www/drupalvm/drupal/web/debug/redia3.txt", print_r(json_encode($options['json']) , TRUE), FILE_APPEND);
-      //$jar->toArray();
+      //file_put_contents("/var/www/drupalvm/drupal/web/debug/redia1.txt", print_r($options , TRUE), FILE_APPEND);
+      //file_put_contents("/var/www/drupalvm/drupal/web/debug/redia3.txt", print_r(json_encode($options['json']) , TRUE), FILE_APPEND);
       $this->logger->logDebug('Call options to libry service: %options', ['%options' => json_encode($options)]);
 
       $response = $client->post($this->url, $options);

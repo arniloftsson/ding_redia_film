@@ -31,12 +31,9 @@
             false
           );
           async function getMedia() {
-            /**
-             * Example data.
-            */
              return {
               mpxToken: "<?php print $object->token ?>",
-              info: <?php print json_encode($object->info) ?>
+              info: <?php print json_encode($object->info) ?>,
             };
           }
         </script>

@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Film service Object.
+ * Film service Objects.
  */
 
 
@@ -23,7 +23,7 @@ class RediaFilmObjects extends RediaFilmAbstractObject
   public function createLoan(RediaFilmUser $user, RediaFilmObject $object) {
     $response = $this->client->createLoan($object->id, $user->getSessionid());
     
-    file_put_contents("/var/www/drupalvm/drupal/web/debug/create1.txt", print_r($response , TRUE), FILE_APPEND);
+    //file_put_contents("/var/www/drupalvm/drupal/web/debug/create1.txt", print_r($response , TRUE), FILE_APPEND);
   }
 
    /**
@@ -51,11 +51,10 @@ class RediaFilmObjects extends RediaFilmAbstractObject
   public function getObjects(array $identifiers) {
     $libry_objects = [];
     $response = $this->client->getObject($identifiers);
-    file_put_contents("/var/www/drupalvm/drupal/web/debug/redia2.txt", print_r($response, TRUE), FILE_APPEND);
     if ($this->hasResult($response)) {
       $data = $this->getData($response);
       foreach ($data as $key => $object) {
-        file_put_contents("/var/www/drupalvm/drupal/web/debug/object2.txt", print_r($object, TRUE), FILE_APPEND);
+        //file_put_contents("/var/www/drupalvm/drupal/web/debug/object2.txt", print_r($object, TRUE), FILE_APPEND);
         if (isset($object['data'])) {
           $item_data = $object['data'];
           $libry_object = new RediaFilmObject();
@@ -72,9 +71,9 @@ class RediaFilmObjects extends RediaFilmAbstractObject
         }      
       }
     } else {
-      $this->logger->logError('Couldnt get the objects from the film service: %response', ['%response' => print_r($response, TRUE)]);
+      //$this->logger->logError('Couldnt get the objects from the film service: %response', ['%response' => print_r($response, TRUE)]);
     }
-    file_put_contents("/var/www/drupalvm/drupal/web/debug/object4.txt", print_r($libry_objects, TRUE), FILE_APPEND);
+    //file_put_contents("/var/www/drupalvm/drupal/web/debug/object4.txt", print_r($libry_objects, TRUE), FILE_APPEND);
     return $libry_objects;
   }
 
@@ -96,22 +95,7 @@ class RediaFilmObjects extends RediaFilmAbstractObject
         return $data['token'];
       }
     }
-    file_put_contents("/var/www/drupalvm/drupal/web/debug/token1.txt", print_r($response , TRUE), FILE_APPEND);
+    //file_put_contents("/var/www/drupalvm/drupal/web/debug/token1.txt", print_r($response , TRUE), FILE_APPEND);
     return $token;
   }
-
-}
-
-class RediaFilmObject
-{
-  public $id;
-  public $tingObjectId;
-  public $title;
-  public $creators;
-  public $info;
-  public $token;
-
-  public $loanDate;
-  public $expireDate;
-  public $progress;
 }
