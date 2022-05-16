@@ -89,13 +89,13 @@ class RediaFilmObjects extends RediaFilmAbstractObject
   public function getToken(RediaFilmUser $user) {
     $token = null;
     $response = $this->client->getToken($user->getSessionid());
+    file_put_contents("/var/www/drupalvm/drupal/web/debug/token1.txt", print_r($response , TRUE), FILE_APPEND);
     if ($this->hasResult($response)) {
       $data = $this->getData($response);
       if (isset($data['token'])) {
         return $data['token'];
       }
     }
-    //file_put_contents("/var/www/drupalvm/drupal/web/debug/token1.txt", print_r($response , TRUE), FILE_APPEND);
     return $token;
   }
 }

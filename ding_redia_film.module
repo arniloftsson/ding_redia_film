@@ -236,6 +236,12 @@ function ding_redia_film_create_checkout_popup($ting_object, $redia_user) {
  * Watch film.
  */
 function ding_redia_film_watch() {
+  //test code
+  $curl_options = array(
+    CURLOPT_SSL_VERIFYPEER => FALSE, // Required to make the tests run on HTTPS.
+    CURLOPT_SSL_VERIFYHOST => FALSE, // Required to make the tests run on HTTPS.
+  );
+  variable_set('curl_options', $curl_options);
   $client = _ding_redia_film_get_client();
   $redia_user = new RediaFilmUser($client);
   $token = 'dYUvEdnrlDwfrkiaXBryPbCheMGzQOtsdOmZGbbB';
@@ -260,7 +266,7 @@ function ding_redia_film_watch_trailer() {
   $trailers = [];
   $client = _ding_redia_film_get_client();
   $libry_object = new RediaFilmObjects($client);
-  $object = $libry_object->getObject('187922471992');
+  $object = $libry_object->getObject('41514536241');
   if (isset($object->trailers)) {
     foreach ($object->trailers as $trailer) {
       if ($trailer['format'] == 'MPEG4') { //Todo are there other formats?
