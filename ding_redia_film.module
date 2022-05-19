@@ -266,7 +266,8 @@ function ding_redia_film_watch_trailer() {
   $trailers = [];
   $client = _ding_redia_film_get_client();
   $libry_object = new RediaFilmObjects($client);
-  $object = $libry_object->getObject('41514536241');
+  $object = $libry_object->getObject('41525800301');
+  //file_put_contents("/var/www/drupalvm/drupal/web/debug/trailer1.txt", print_r($object, TRUE), FILE_APPEND);
   if (isset($object->trailers)) {
     foreach ($object->trailers as $trailer) {
       if ($trailer['format'] == 'MPEG4') { //Todo are there other formats?

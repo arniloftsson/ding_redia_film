@@ -36,7 +36,8 @@ class RediaFilmObjects extends RediaFilmAbstractObject
     *   The objects from the service.
     */
   public function getObject($identifier) {
-    return reset($this->getObjects([$identifier]));
+    $objects = $this->getObjects([$identifier]);
+    return reset($objects);
   }
 
    /**
@@ -73,7 +74,7 @@ class RediaFilmObjects extends RediaFilmAbstractObject
     } else {
       //$this->logger->logError('Couldnt get the objects from the film service: %response', ['%response' => print_r($response, TRUE)]);
     }
-    //file_put_contents("/var/www/drupalvm/drupal/web/debug/object4.txt", print_r($libry_objects, TRUE), FILE_APPEND);
+    //file_put_contents("/var/www/drupalvm/drupal/web/debug/object4.txt", print_r($response , TRUE), FILE_APPEND);
     return $libry_objects;
   }
 
@@ -89,7 +90,7 @@ class RediaFilmObjects extends RediaFilmAbstractObject
   public function getToken(RediaFilmUser $user) {
     $token = null;
     $response = $this->client->getToken($user->getSessionid());
-    file_put_contents("/var/www/drupalvm/drupal/web/debug/token1.txt", print_r($response , TRUE), FILE_APPEND);
+    //file_put_contents("/var/www/drupalvm/drupal/web/debug/token1.txt", print_r($response , TRUE), FILE_APPEND);
     if ($this->hasResult($response)) {
       $data = $this->getData($response);
       if (isset($data['token'])) {
