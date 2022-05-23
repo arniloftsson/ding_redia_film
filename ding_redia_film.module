@@ -25,6 +25,7 @@ function ding_redia_film_menu() {
   $items['film/libry/watch/%'] = [
     'title' => 'Libry Film watch',
     'page callback' => 'ding_redia_film_watch',
+    'page arguments' => [3],
     'access arguments' => ['access content'],
   ];
 
@@ -134,7 +135,8 @@ function ding_redia_film_checkout_ajax($ting_object) {
     // Try to make reservation.
     // Start off customized section.
     try {
-      $checkout = ding_redia_film_can_user_checkout($ting_object);
+      $id = $ting_object->getLocalId();
+      $checkout = ding_redia_film_can_user_checkout($id);
       $commands[] = ajax_command_ding_popup('ding_redia_film', t($checkout['title']), $checkout['html']);
     }
     catch (DingProviderAuthException $exception) {
@@ -160,7 +162,7 @@ function ding_redia_film_checkout_ajax($ting_object) {
 /**
  * Checkout film.
  */
-function ding_redia_film_can_user_checkout($ting_object) {
+function ding_redia_film_can_user_checkout($id) {
   $checkout = [];
   $client = _ding_redia_film_get_client();
   $redia_user = new RediaFilmUser($client);
@@ -179,7 +181,7 @@ function ding_redia_film_can_user_checkout($ting_object) {
   }
   //file_put_contents("/var/www/drupalvm/drupal/web/debug/checkout5.txt", print_r($redia_user, TRUE), FILE_APPEND);
   if ($redia_user->isElligble) {
-    return ding_redia_film_create_checkout_popup($ting_object, $redia_user);
+    return ding_redia_film_create_checkout_popup($id, $redia_user);
   } else {
     return ding_redia_film_user_not_elligble_popup($redia_user);
   }
@@ -205,7 +207,7 @@ function ding_redia_film_user_not_elligble_popup($redia_user) {
 /**
  * Create new film loan.
  */
-function ding_redia_film_create_checkout_popup($ting_object, $redia_user) {
+function ding_redia_film_create_checkout_popup($id, $redia_user) {
   $checkout = [];
   $checkout_confirmation = t('Do you want to loan the film for 2 days');
   $replacements = [
@@ -217,7 +219,7 @@ function ding_redia_film_create_checkout_popup($ting_object, $redia_user) {
   $checkout_yes_button = t('Yes');
   $checkout_cancel_button = t('Cancel');
   //TOdo libry service id!!
-  $watch_link = '/film/libry/watch/' . $ting_object->id;
+  $watch_link = '/film/libry/watch/' . $id;
 
   $variables = [
     'checkout_confirmation' => $checkout_confirmation,
@@ -235,7 +237,7 @@ function ding_redia_film_create_checkout_popup($ting_object, $redia_user) {
 /**
  * Watch film.
  */
-function ding_redia_film_watch() {
+function ding_redia_film_watch($id) {
   //test code
   $curl_options = array(
     CURLOPT_SSL_VERIFYPEER => FALSE, // Required to make the tests run on HTTPS.
@@ -248,7 +250,7 @@ function ding_redia_film_watch() {
   $status = $redia_user->login($token);
   $elligbible = $redia_user->getUserEligble();
   $libry_object = new RediaFilmObjects($client);
-  $object = $libry_object->getObject('41514536241');
+  $object = $libry_object->getObject($id);
   $libry_object->createLoan($redia_user, $object);
   $object->token = $libry_object->getToken($redia_user);
   
@@ -292,7 +294,7 @@ function ding_redia_film_ding_entity_buttons($type, $entity, $view_mode, $widget
       $watch_button = [
         '#theme' => 'link',
         '#text' => t('Watch film'),
-        '#path' => 'film/libry/checkout/' . $entity->getLocalId(),
+        '#path' => 'film/libry/checkout/' . $entity->id,
         '#options' => [
           'attributes' => [
             'class' => [
@@ -319,7 +321,7 @@ function ding_redia_film_ding_entity_buttons($type, $entity, $view_mode, $widget
 
       $trailer_button = $watch_button;
       $trailer_button['#text'] = t('Watch trailer');
-      $trailer_button['#path'] = 'film/libry/watchtrailer/' . $entity->id;
+      $trailer_button['#path'] = 'film/libry/watchtrailer/' . $entity->getLocalId();
       $trailer_button['#options']['attributes']['class'] = ['action-button', 'watch-trailer-button'];
       $buttons[] = $trailer_button;
     }
