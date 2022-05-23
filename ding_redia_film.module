@@ -287,43 +287,73 @@ function ding_redia_film_watch_trailer() {
  */
 function ding_redia_film_ding_entity_buttons($type, $entity, $view_mode, $widget = 'default') {
   $buttons = [];
-
-  if ($type == 'ding_entity') {
-    $watch_button = [
-      '#theme' => 'link',
-      '#text' => t('Watch film'),
-      '#path' => 'film/libry/checkout/' . $entity->id,
-      '#options' => [
-        'attributes' => [
-          'class' => [
-            'action-button',
-            'watch-button',
-            'use-ajax',
+  if (ding_redia_film_is_libry_film($entity)) {
+    if ($type == 'ding_entity') {
+      $watch_button = [
+        '#theme' => 'link',
+        '#text' => t('Watch film'),
+        '#path' => 'film/libry/checkout/' . $entity->getLocalId(),
+        '#options' => [
+          'attributes' => [
+            'class' => [
+              'action-button',
+              'watch-button',
+              'use-ajax',
+            ],
+          ],
+          'html' => FALSE,
+        ],
+        '#attached' => [
+          'library' => [
+            ['system', 'drupal.ajax'],
+          ],
+          'js' => [
+            [
+              'type' => 'file',
+              'data' => drupal_get_path('module', 'ding_redia_film') . '/js/ding_redia_film.js',
+            ],
           ],
         ],
-        'html' => FALSE,
-      ],
-      '#attached' => [
-        'library' => [
-          ['system', 'drupal.ajax'],
-        ],
-        'js' => [
-          [
-            'type' => 'file',
-            'data' => drupal_get_path('module', 'ding_redia_film') . '/js/ding_redia_film.js',
-          ],
-        ],
-      ],
-    ];
-    $buttons[] = $watch_button;
+      ];
+      $buttons[] = $watch_button;
 
-    $trailer_button = $watch_button;
-    $trailer_button['#text'] = t('Watch trailer');
-    $trailer_button['#path'] = 'film/libry/watchtrailer/' . $entity->id;
-    $trailer_button['#options']['attributes']['class'] = ['action-button', 'watch-trailer-button'];
-    $buttons[] = $trailer_button;
+      $trailer_button = $watch_button;
+      $trailer_button['#text'] = t('Watch trailer');
+      $trailer_button['#path'] = 'film/libry/watchtrailer/' . $entity->id;
+      $trailer_button['#options']['attributes']['class'] = ['action-button', 'watch-trailer-button'];
+      $buttons[] = $trailer_button;
+    }
   }
   return $buttons;
+}
+
+/**
+ * Removes superfluous online button.
+*/
+function ding_redia_film_field_attach_view_alter(&$output, $context) {
+  if ($context['entity_type'] == 'ting_object') {
+    if (ding_redia_film_is_libry_film($context['entity'])) {
+      
+      if (isset ($output['ding_entity_buttons']) && isset($output['ding_entity_buttons'][0])) {
+        $buttons = $output['ding_entity_buttons'][0];
+        foreach ($buttons as $key => $button) {
+          if (isset($button['#type']) && $button['#type'] == 'html_tag' && $button['#value'] == 'Se online') {
+            unset($output['ding_entity_buttons'][0][$key]);
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Checks if object is a Libry film.
+*/
+function ding_redia_film_is_libry_film($entity) {
+  if ($entity->getAc_source() == 'Libry films') {
+    return true;
+  }
+  return false;
 }
 
 /**
