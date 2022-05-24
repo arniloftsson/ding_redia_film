@@ -120,7 +120,7 @@ function ding_redia_film_checkout_ajax($ting_object) {
   // Check if the logged-in user is a library user.
   global $user;
   if (!user_is_logged_in()) {
-    // Trigger log-in (the reservation link will be triggered on success).
+    // Trigger log-in (the checkout link will be triggered on success).
     $commands[] = ajax_command_ding_user_authenticate('');
   }
   elseif (!ding_user_is_provider_user($user)) {
@@ -133,8 +133,7 @@ function ding_redia_film_checkout_ajax($ting_object) {
     $commands[] = ajax_command_ding_popup('ding_redia_film', t('Error'), '<p>' . t('Only residents in the municipal user can watch films.') . '</p>');
   }
   else {
-    // Try to make reservation.
-    // Start off customized section.
+    // Try to checkout film.
     try {
       $id = $ting_object->getLocalId();
       $checkout = ding_redia_film_can_user_checkout($id);
@@ -148,14 +147,13 @@ function ding_redia_film_checkout_ajax($ting_object) {
     catch (Exception $exception) {
       // The form may have thrown an auth exception as the login may have
       // timed-out.
-      // TODO check this (the reservation link will be triggered on success).
+      // TODO check this (the checkout link will be triggered on success).
       $commands[] = ajax_command_ding_popup('ding_redia_film', t('Error'), '<p>' . t('Unknown error in trying to watch film, please contact the library.') . '</p>');
 
       // Log exception.
       watchdog_exception('ding_redia_film', $exception);
     }
   }
-
   // Return the ajax commands as an render array.
   return ['#type' => 'ajax', '#commands' => $commands];
 }
@@ -240,11 +238,11 @@ function ding_redia_film_create_checkout_popup($id, $redia_user) {
  */
 function ding_redia_film_watch($id) {
   //test code
-  $curl_options = array(
-    CURLOPT_SSL_VERIFYPEER => FALSE, // Required to make the tests run on HTTPS.
-    CURLOPT_SSL_VERIFYHOST => FALSE, // Required to make the tests run on HTTPS.
-  );
-  variable_set('curl_options', $curl_options);
+  // $curl_options = array(
+  //   CURLOPT_SSL_VERIFYPEER => FALSE, // Required to make the tests run on HTTPS.
+  //   CURLOPT_SSL_VERIFYHOST => FALSE, // Required to make the tests run on HTTPS.
+  // );
+  //variable_del('curl_options');
   $client = _ding_redia_film_get_client();
   $redia_user = new RediaFilmUser($client);
   $token = 'dYUvEdnrlDwfrkiaXBryPbCheMGzQOtsdOmZGbbB';
@@ -283,9 +281,9 @@ function ding_redia_film_watch_trailer($id) {
     }
   }
   $trailer_html = theme('ding_redia_film_trailer', ['trailers' => $trailers]);
-  file_put_contents("/var/www/drupalvm/drupal/web/debug/trailer1.txt", print_r($trailer_html, TRUE), FILE_APPEND);
+  //file_put_contents("/var/www/drupalvm/drupal/web/debug/trailer1.txt", print_r($trailer_html, TRUE), FILE_APPEND);
   $commands[] = ajax_command_ding_popup('ding_redia_film', $object->title, $trailer_html);
-  file_put_contents("/var/www/drupalvm/drupal/web/debug/trailer2.txt", print_r($commands, TRUE), FILE_APPEND);
+  //file_put_contents("/var/www/drupalvm/drupal/web/debug/trailer2.txt", print_r($commands, TRUE), FILE_APPEND);
   return ['#type' => 'ajax', '#commands' => $commands];
 }
 

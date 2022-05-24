@@ -73,7 +73,7 @@ class RediaFilmObjects extends RediaFilmAbstractObject
     if ($this->hasResult($response)) {
       $data = $this->getData($response);
       foreach ($data as $key => $object) {
-        file_put_contents("/var/www/drupalvm/drupal/web/debug/object2.txt", print_r($object, TRUE), FILE_APPEND);
+        //file_put_contents("/var/www/drupalvm/drupal/web/debug/object2.txt", print_r($object, TRUE), FILE_APPEND);
         if (isset($object['data'])) {
           $item_data = $object['data'];
           $libry_object = new RediaFilmObject();
