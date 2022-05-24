@@ -14,7 +14,7 @@
    height="436"
    src="http://link.theplatform.eu/s/jGxigC/media/mBVxOTNEkFyk">
   </iframe> -->
-  <video controls >
+  <video controls autoplay="true">
   <?php foreach($trailers as $trailer): ?>
     <source src="<?php print $trailer['source'] ?>" 
       type="<?php print $trailer['format']?>">

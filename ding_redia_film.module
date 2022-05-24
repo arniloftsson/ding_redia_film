@@ -32,8 +32,9 @@ function ding_redia_film_menu() {
   $items['film/libry/watchtrailer/%'] = [
     'title' => 'Libry Film watch trailer',
     'page callback' => 'ding_redia_film_watch_trailer',
+    'page arguments' => [3],
     'access arguments' => ['access content'],
-    'type' => MENU_CALLBACK,
+    'delivery callback' => 'ajax_deliver',
   ];
 
   $items['film/libry/checkout/%ting_object'] = [
@@ -114,7 +115,7 @@ function ding_redia_film_ctools_plugin_directory($module, $plugin) {
  * Watch film.
  */
 function ding_redia_film_checkout_ajax($ting_object) {
-  $commands = array();
+  $commands = [];
 
   // Check if the logged-in user is a library user.
   global $user;
@@ -156,7 +157,7 @@ function ding_redia_film_checkout_ajax($ting_object) {
   }
 
   // Return the ajax commands as an render array.
-  return array('#type' => 'ajax', '#commands' => $commands);
+  return ['#type' => 'ajax', '#commands' => $commands];
 }
 
 /**
@@ -264,11 +265,12 @@ function ding_redia_film_watch($id) {
 /**
  * Watch film trailer.
  */
-function ding_redia_film_watch_trailer() {
+function ding_redia_film_watch_trailer($id) {
+  $commands = [];
   $trailers = [];
   $client = _ding_redia_film_get_client();
   $libry_object = new RediaFilmObjects($client);
-  $object = $libry_object->getObject('41525800301');
+  $object = $libry_object->getObject($id);
   //file_put_contents("/var/www/drupalvm/drupal/web/debug/trailer1.txt", print_r($object, TRUE), FILE_APPEND);
   if (isset($object->trailers)) {
     foreach ($object->trailers as $trailer) {
@@ -280,9 +282,14 @@ function ding_redia_film_watch_trailer() {
       }
     }
   }
-  
-  return theme('ding_redia_film_trailer', ['trailers' => $trailers]);
+  $trailer_html = theme('ding_redia_film_trailer', ['trailers' => $trailers]);
+  file_put_contents("/var/www/drupalvm/drupal/web/debug/trailer1.txt", print_r($trailer_html, TRUE), FILE_APPEND);
+  $commands[] = ajax_command_ding_popup('ding_redia_film', $object->title, $trailer_html);
+  file_put_contents("/var/www/drupalvm/drupal/web/debug/trailer2.txt", print_r($commands, TRUE), FILE_APPEND);
+  return ['#type' => 'ajax', '#commands' => $commands];
 }
+
+
 
 /**
  * Implements hook_ding_entity_buttons().
@@ -318,12 +325,13 @@ function ding_redia_film_ding_entity_buttons($type, $entity, $view_mode, $widget
         ],
       ];
       $buttons[] = $watch_button;
-
-      $trailer_button = $watch_button;
-      $trailer_button['#text'] = t('Watch trailer');
-      $trailer_button['#path'] = 'film/libry/watchtrailer/' . $entity->getLocalId();
-      $trailer_button['#options']['attributes']['class'] = ['action-button', 'watch-trailer-button'];
-      $buttons[] = $trailer_button;
+      if (ding_redia_film_has_trailer($entity->getLocalId())) {
+        $trailer_button = $watch_button;
+        $trailer_button['#text'] = t('Watch trailer');
+        $trailer_button['#path'] = 'film/libry/watchtrailer/' . $entity->getLocalId();
+        $trailer_button['#options']['attributes']['class'] = ['action-button', 'watch-trailer-button', 'use-ajax'];
+        $buttons[] = $trailer_button;
+      }
     }
   }
   return $buttons;
@@ -353,6 +361,20 @@ function ding_redia_film_field_attach_view_alter(&$output, $context) {
 */
 function ding_redia_film_is_libry_film($entity) {
   if ($entity->getAc_source() == 'Libry films') {
+    return true;
+  }
+  return false;
+}
+
+/**
+   * Checks if there is a trailer.
+   * 
+   */
+function ding_redia_film_has_trailer($id) {
+  $client = _ding_redia_film_get_client();
+  $objects = new RediaFilmObjects($client);
+  $libry_object = $objects->getObject($id);
+  if (isset($libry_object->trailers) && !empty($libry_object->trailers)) {
     return true;
   }
   return false;

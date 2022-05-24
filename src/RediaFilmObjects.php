@@ -26,6 +26,24 @@ class RediaFilmObjects extends RediaFilmAbstractObject
     //file_put_contents("/var/www/drupalvm/drupal/web/debug/create1.txt", print_r($response , TRUE), FILE_APPEND);
   }
 
+  /**
+   * Gets at film object from the service.
+   * 
+   * @param string $identifier
+   *   The identifier off the object.
+   * 
+   * @return RediaFilmObject 
+   *   The objects from the service.
+   */
+  public function hasTrailer($identifier) {
+    $objects = $this->getObjects([$identifier]);
+    $libry_object= reset($objects);
+    if (isset($libry_object->trailers) && !empty($libry_object->trailers)) {
+      return true;
+    }
+    return false;
+  }
+
    /**
     * Gets at film object from the service.
     * 
@@ -55,7 +73,7 @@ class RediaFilmObjects extends RediaFilmAbstractObject
     if ($this->hasResult($response)) {
       $data = $this->getData($response);
       foreach ($data as $key => $object) {
-        //file_put_contents("/var/www/drupalvm/drupal/web/debug/object2.txt", print_r($object, TRUE), FILE_APPEND);
+        file_put_contents("/var/www/drupalvm/drupal/web/debug/object2.txt", print_r($object, TRUE), FILE_APPEND);
         if (isset($object['data'])) {
           $item_data = $object['data'];
           $libry_object = new RediaFilmObject();

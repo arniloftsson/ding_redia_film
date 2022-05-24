@@ -51,3 +51,14 @@
   margin-right: 30px;
   margin-top: 20px;
 }
+
+.redia-film-trailer {
+	display: flex;
+	justify-content: center;
+	margin-bottom: 20px;
+  height: 90vh;
+}
+
+.popupbar #popupbar-ding_redia_film {
+	padding: 30px 0 20px;
+}
