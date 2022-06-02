@@ -135,8 +135,8 @@ function ding_redia_film_checkout_ajax($ting_object) {
   else {
     // Try to checkout film.
     try {
-      $id = $ting_object->getLocalId();
-      $checkout = ding_redia_film_can_user_checkout($id);
+      $libry_id = $ting_object->getLocalId();     
+      $checkout = ding_redia_film_can_user_checkout($libry_id );
       $commands[] = ajax_command_ding_popup('ding_redia_film', t($checkout['title']), $checkout['html']);
     }
     catch (DingProviderAuthException $exception) {
@@ -161,26 +161,26 @@ function ding_redia_film_checkout_ajax($ting_object) {
 /**
  * Checkout film.
  */
-function ding_redia_film_can_user_checkout($id) {
+function ding_redia_film_can_user_checkout($libry_id) {
   $checkout = [];
-  $client = _ding_redia_film_get_client();
-  $redia_user = new RediaFilmUser($client);
-  $is_loggedin = $redia_user->login("dYUvEdnrlDwfrkiaXBryPbCheMGzQOtsdOmZGbbB");
+  $redia_user = $redia_user = ding_redia_film_get_user_controller();
+  //Todo har already loaned the film.
+  $is_loggedin = $redia_user->login("dYUvEdnrlDwfrkiaXBryPbCheMGzQOtsdOmZGbbB"); //todo gettoken
   if (!$is_loggedin) {
     $checkout['title'] = 'Error';
     $checkout['html'] = '<p>' . t('Cant log in to the film service.') . '</p>';
     return $checkout;
   }
 
-  $user_status = $redia_user->getUserEligble();
+  $user_status = $redia_user->getUserEligible();
   if (!$user_status) {
     $checkout['title'] = 'Error';
     $checkout['html'] = '<p>' . t('Cant get credentials') . '</p>';
     return $checkout;
   }
-  //file_put_contents("/var/www/drupalvm/drupal/web/debug/checkout5.txt", print_r($redia_user, TRUE), FILE_APPEND);
+
   if ($redia_user->isElligble) {
-    return ding_redia_film_create_checkout_popup($id, $redia_user);
+    return ding_redia_film_create_checkout_popup($libry_id, $redia_user);
   } else {
     return ding_redia_film_user_not_elligble_popup($redia_user);
   }
@@ -206,7 +206,7 @@ function ding_redia_film_user_not_elligble_popup($redia_user) {
 /**
  * Create new film loan.
  */
-function ding_redia_film_create_checkout_popup($id, $redia_user) {
+function ding_redia_film_create_checkout_popup($libry_id , $redia_user) {
   $checkout = [];
   $checkout_confirmation = t('Do you want to loan the film for 2 days');
   $replacements = [
@@ -214,11 +214,12 @@ function ding_redia_film_create_checkout_popup($id, $redia_user) {
     '%number_of_loans' =>  $redia_user->maxNumberOfLoans,
     '%period' =>$redia_user->loanDuration,
   ];
+
   $checkout_status = t('If you loan the film you have used %used_loans loans out of %number_of_loans loans within %period days', $replacements);
   $checkout_yes_button = t('Yes');
   $checkout_cancel_button = t('Cancel');
-  //TOdo libry service id!!
-  $watch_link = '/film/libry/watch/' . $id;
+
+  $watch_link = '/film/libry/watch/' . $libry_id;
 
   $variables = [
     'checkout_confirmation' => $checkout_confirmation,
@@ -237,26 +238,36 @@ function ding_redia_film_create_checkout_popup($id, $redia_user) {
  * Watch film.
  */
 function ding_redia_film_watch($id) {
-  //test code
-  // $curl_options = array(
-  //   CURLOPT_SSL_VERIFYPEER => FALSE, // Required to make the tests run on HTTPS.
-  //   CURLOPT_SSL_VERIFYHOST => FALSE, // Required to make the tests run on HTTPS.
-  // );
-  //variable_del('curl_options');
-  $client = _ding_redia_film_get_client();
-  $redia_user = new RediaFilmUser($client);
-  $token = 'dYUvEdnrlDwfrkiaXBryPbCheMGzQOtsdOmZGbbB';
-  $status = $redia_user->login($token);
-  $elligbible = $redia_user->getUserEligble();
-  $libry_object = new RediaFilmObjects($client);
-  $object = $libry_object->getObject($id);
-  $libry_object->createLoan($redia_user, $object);
-  $object->token = $libry_object->getToken($redia_user);
-  
-  //file_put_contents("/var/www/drupalvm/drupal/web/debug/login4.txt", print_r($object, TRUE), FILE_APPEND);
+  drupal_page_is_cacheable(FALSE);
 
-  //ile_put_contents("/var/www/drupalvm/drupal/web/debug/film1.txt", print_r(theme('ding_redia_film_watch', ['object' => $object]), TRUE), FILE_APPEND);
-  return theme('ding_redia_film_watch', ['object' => $object]);
+  $redia_user = ding_redia_film_get_user_controller();
+  $token = 'dYUvEdnrlDwfrkiaXBryPbCheMGzQOtsdOmZGbbB';
+
+  //Todo handle failed logins.
+  $logged_in = $redia_user->login($token);
+  If (!$logged_in) {
+    //logged in popup
+    //drupal set message
+    // goto somwhere
+  }
+  $eligbible = $redia_user->getUserEligible();
+  If ($eligbible) {
+    //drupal set message
+    // goto somwhere
+  }
+
+  $object_controller = ding_redia_film_get_object_controller();
+  // Todo Check if already loaned.
+  $libry_object = $object_controller->getObject($id);
+
+  // Todo Handle in one call
+  $object_controller->createLoan($redia_user, $libry_object);
+  $libry_object->token = $object_controller->getToken($redia_user);
+
+  // In order to facilitate full screen view mode.
+  drupal_add_http_header('Feature-Policy', 'fullscreen "self" https://play.libry.dk/;');
+  
+  return theme('ding_redia_film_watch', ['object' => $libry_object]);
 }
 
 
@@ -266,12 +277,11 @@ function ding_redia_film_watch($id) {
 function ding_redia_film_watch_trailer($id) {
   $commands = [];
   $trailers = [];
-  $client = _ding_redia_film_get_client();
-  $libry_object = new RediaFilmObjects($client);
-  $object = $libry_object->getObject($id);
-  //file_put_contents("/var/www/drupalvm/drupal/web/debug/trailer1.txt", print_r($object, TRUE), FILE_APPEND);
-  if (isset($object->trailers)) {
-    foreach ($object->trailers as $trailer) {
+  $object_controller = ding_redia_film_get_object_controller(); 
+  $libry_object = $object_controller->getObject($id);
+
+  if (isset($libry_object->trailers)) {
+    foreach ($libry_object->trailers as $trailer) {
       if ($trailer['format'] == 'MPEG4') { //Todo are there other formats?
         $trailers[] = [
           'source' => $trailer['watchUrl'],
@@ -281,9 +291,7 @@ function ding_redia_film_watch_trailer($id) {
     }
   }
   $trailer_html = theme('ding_redia_film_trailer', ['trailers' => $trailers]);
-  //file_put_contents("/var/www/drupalvm/drupal/web/debug/trailer1.txt", print_r($trailer_html, TRUE), FILE_APPEND);
-  $commands[] = ajax_command_ding_popup('ding_redia_film', $object->title, $trailer_html);
-  //file_put_contents("/var/www/drupalvm/drupal/web/debug/trailer2.txt", print_r($commands, TRUE), FILE_APPEND);
+  $commands[] = ajax_command_ding_popup('ding_redia_film', $libry_object->title, $trailer_html);
   return ['#type' => 'ajax', '#commands' => $commands];
 }
 
@@ -341,7 +349,7 @@ function ding_redia_film_ding_entity_buttons($type, $entity, $view_mode, $widget
 function ding_redia_film_field_attach_view_alter(&$output, $context) {
   if ($context['entity_type'] == 'ting_object') {
     if (ding_redia_film_is_libry_film($context['entity'])) {
-      
+      // If the object is a libry film we dont need the online button.
       if (isset ($output['ding_entity_buttons']) && isset($output['ding_entity_buttons'][0])) {
         $buttons = $output['ding_entity_buttons'][0];
         foreach ($buttons as $key => $button) {
@@ -369,9 +377,9 @@ function ding_redia_film_is_libry_film($entity) {
    * 
    */
 function ding_redia_film_has_trailer($id) {
-  $client = _ding_redia_film_get_client();
-  $objects = new RediaFilmObjects($client);
-  $libry_object = $objects->getObject($id);
+  //Todo move to controller.
+  $object_controller = ding_redia_film_get_object_controller();
+  $libry_object = $object_controller->getObject($id);
   if (isset($libry_object->trailers) && !empty($libry_object->trailers)) {
     return true;
   }
@@ -379,9 +387,27 @@ function ding_redia_film_has_trailer($id) {
 }
 
 /**
+ * Gets a object controller.
+ * 
+ */
+function ding_redia_film_get_object_controller() {
+  $client = _ding_redia_film_get_client();
+  return new RediaFilmObjectsController($client);
+}
+
+/**
+ * Gets a User controller.
+ * 
+ */
+function ding_redia_film_get_user_controller() {
+  $client = _ding_redia_film_get_client();
+  return new RediaFilmUserController($client);
+}
+
+/**
  * Get Film service client.
  *
- * @return \RediaFilmRequest|NULL
+ * @return RediaFilmRequest $client
  *   Client to communicate with the service or NULL if not configured.
  */
 function _ding_redia_film_get_client() {
@@ -390,6 +416,7 @@ function _ding_redia_film_get_client() {
   if (!isset($client)) {
     $log_debug = variable_get('ding_redia_film_enable_logging', FALSE);
     $logger = new RediaFilmLogger('ding_redia_film', $log_debug);
+
     $url = variable_get('ding_redia_film_server', 'https://bapps-be-staging.redia.dk/v2/');
     $api_key = variable_get('ding_redia_film_api_key', ''); // '12481632';
     $agency = 'DK-775100'; //variable_get('ting_agency', '');
@@ -399,6 +426,7 @@ function _ding_redia_film_get_client() {
     if (isset($url) && isset($api_key) && isset($version) && isset($agency) && isset($language)) {
       // We cache the customerid so we dont have to get it on every request.
       $customer_id = cache_get('ding_redia_film_customer_id');
+
       if (!$customer_id) {
         $client = new RediaFilmRequest($url, $api_key, $logger, $agency, $version, $language);
         cache_set('ding_redia_film_customer_id', $client->getCustomerId(), 'cache', REQUEST_TIME + 86400);
@@ -410,90 +438,13 @@ function _ding_redia_film_get_client() {
       watchdog('ding_redia_film', 'The ding_redia_film module is missing its configuration', NULL, WATCHDOG_ERROR);
     }
   }
-
   return $client;
 }
 
-
-
-// /**
-//  * Generate a login url which can be used as a prop for React apps.
-//  *
-//  * @return string
-//  *   Login url.
-//  */
-// function ding_redia_film_login_url() {
-//   return ding_provider_invoke(
-//     'openplatform_token',
-//     'login_url',
-//     ['query' => ['destination' => '']]
-//   );
-// }
-
-// /**
-//  * Authenticates users with the libry film service.
-//  *
-//  * Outputs JSON response with token, status message and username
-//  */
-// function ding_redia_film_authenticate() {
-//   global $user;
-
-//   $film_service_token = null;
-//   $username = '';
-
-//   // Ding Varnish will cache requests even for logged in users. Mark this
-//   // page as not cacheable to bypass Varnish. Uses should not get each others
-//   // token due to a cached response.
-//   drupal_page_is_cacheable(FALSE);
-
-//   $parameters = drupal_get_query_parameters();
-
-//   if (isset($parameters['customerid']) && isset($parameters['apikey'])) {
-//     $customer_id = $parameters['customerid'];
-//     $api_key = $parameters['apikey'];
-
-//     // Check if the logged in user is a library user.
-//     if (!user_is_logged_in()) {
-//       $status = 'not_logged_in';
-//     } elseif (!ding_user_is_provider_user($user)) {
-//       $status = 'not_library_user';
-//     } else {
-//       $libry_token = ding_redia_film_handle_authentication($customer_id, $api_key);
-//       if (isset($libry_token)) {
-//         $status = 'logged_in';
-//         $film_service_token = $libry_token;
-//         $creds = ding_user_get_creds();
-//         if (isset($creds['name'])) {
-//           $username = $creds['name'];
-//         }
-//       } else {
-//         $status = 'no_token';
-//       }
-//     }
-//   } else {
-//     $status = 'missing_parameters';
-//   }
-
-//   $output = ['token' => $film_service_token, 'status' => $status, 'username' => $username];
-//   drupal_json_output($output);
-// }
-
-// /**
-//  * @TODO: Missing description...
-//  *
-//  * @param $user_id
-//  *
-//  * @param $api_key
-//  *
-//  * @return string|null
-//  */
-// function ding_redia_film_handle_authentication($user_id, $api_key) {
-//   $token = ding_provider_invoke('openplatform_token', 'for_user');
-//   //return ding_redia_film_get_film_service_token($token, $user_id, $api_key);
-// }
-
-
-
+function ding_redia_film_get_user_token() {
+  $token = ding_provider_invoke('openplatform_token', 'for_user');
+  return $token;
+}
 
 /**
  * Log debug information to watchdog.
@@ -510,12 +461,12 @@ function _ding_redia_film_debug_log($message, array $variables = []) {
 }
 
 /**
- * Watch film.
+ * Get users film loans.
  */
 function ding_redia_film_get_loans() {
   $loan_items = '';
-  $client = _ding_redia_film_get_client();
-  $redia_user = new RediaFilmUser($client);
+
+  $redia_user =  ding_redia_film_get_user_controller();
   $token = 'dYUvEdnrlDwfrkiaXBryPbCheMGzQOtsdOmZGbbB';
   $status = $redia_user->login($token);
   $loans = $redia_user->getLoans();
@@ -536,6 +487,7 @@ function ding_redia_film_prepare_loan_item($loan) {
   $path = 'ting/object/870970-basis:61644113'; //TOdo make real path
   $loan->title = l($loan->title, $path);
   if (isset($loan->creators)) {
+    // We only show the 3 first creators.
     $loan->creators = array_slice($loan->creators, 0, 3);
     $loan->creators = implode(', ', $loan->creators);
   }
@@ -560,12 +512,9 @@ function ding_redia_film_prepare_loan_item($loan) {
   return $loan;
 }
 
-
-
-
-
 /**
- * Add site temple config.
+ * Add site temple config. The film watch page takes over the whole page so we use site_template_search_blank
+ * and need to add a path to its configuration.
  */
 function ding_redia_film_add_site_template_config() {
   // There is no hook we can use so we interact directly with ctools module.
@@ -587,9 +536,7 @@ function ding_redia_film_add_site_template_config() {
           if (!in_array('film/libry/watch/*', $path_strings)) {
             $paths .= "\nfilm/libry/watch/*";
           }
-          if (!in_array('film/libry/watchtrailer/*', $path_strings)) {
-            $paths .= "\nfilm/libry/watchtrailer/*";
-          }
+
           $access['plugins'][0]['settings']['paths'] = $paths;
 
           page_manager_task_handler_ctools_access_set($argument, $access);
@@ -653,7 +600,6 @@ function ding_redia_film_add_film_loan_panes() {
     }
     panels_save_display($display);
   }
-
 }
 
 /**

@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Film service Object.
+ * Data object for the film service object data.
  */
 
 

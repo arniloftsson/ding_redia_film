@@ -2,19 +2,18 @@
 
 /**
  * @file
- * Film service User.
+ * Film service user controller.
  */
 
 
 /**
- * Class RediaFilmUser.
+ * Class RediaFilmUserController.
  */
-class RediaFilmUser extends RediaFilmAbstractObject
+class RediaFilmUserController extends RediaFilmAbstractController
 {
   private $session_id;
   private $is_loggedin = false;
   private $status_message;
-  private $loans;
 
   public $status;
   public $maxNumberOfLoans;
@@ -64,7 +63,6 @@ class RediaFilmUser extends RediaFilmAbstractObject
    */
   public function login(string $dbc_token) {
     $response = $this->client->login($dbc_token);
-    //file_put_contents("/var/www/drupalvm/drupal/web/debug/redia4.txt", print_r($response, TRUE), FILE_APPEND);
 
     if ($this->hasResult($response) && isset($response['result']['session'])) {
       $this->session_id = $response['result']['session'];
@@ -74,18 +72,17 @@ class RediaFilmUser extends RediaFilmAbstractObject
       $this->status_message = 'Couldnt log user in to the film service';
       $this->logger->logError('Couldnt log the user in to the service: %response', ['%response' => print_r($response, TRUE)]);
     }
-    //file_put_contents("/var/www/drupalvm/drupal/web/debug/login2.txt", print_r($this->session_id, TRUE), FILE_APPEND);
     return $this->is_loggedin;
   }
 
  /**
    * Gets the users loan from the service The user must be logged in.
    * 
-   * @return array $session //TODO
-   *   The session id from the service or null if there is a error.
+   * @return array $libry_loans
+   *   The users loans from the service or empty array if none. Null if the request failes.
    */
   public function getLoans() {
-    $libry_loans = [];
+    $libry_loans = null;
     $ids = [];
     $response = $this->client->getLoans($this->session_id);
     if ($this->hasResult($response)) {
@@ -95,10 +92,9 @@ class RediaFilmUser extends RediaFilmAbstractObject
           $ids[] = $loan['identifier'];
         }
       }
-      $objects = new RediaFilmObjects($this->client);
+      $objects = new RediaFilmObjectsController($this->client);
       $libry_loans = $objects->getObjects($ids);
-
-      //file_put_contents("/var/www/drupalvm/drupal/web/debug/loans1.txt", print_r( $ids , TRUE), FILE_APPEND);    
+ 
       foreach ($loans as $loan) {
         if (isset($loan['identifier']) && isset($libry_loans[$loan['identifier']])) {
           $id = $loan['identifier'];
@@ -107,25 +103,21 @@ class RediaFilmUser extends RediaFilmAbstractObject
           $libry_loans[$id]->progress = isset($loan['progress']) ? $loan['progress'] : 0;
         }
       }
-      //file_put_contents("/var/www/drupalvm/drupal/web/debug/loans2.txt", print_r( $libry_loans , TRUE), FILE_APPEND);
-
     } else {
       $this->status_message = 'Couldnt get the loans for the user from film service';
       $this->logger->logError('Couldnt get the loans for the user from film service: %response', ['%response' => print_r($response, TRUE)]);
     }
-    //file_put_contents("/var/www/drupalvm/drupal/web/debug/redia2.txt", print_r($response , TRUE), FILE_APPEND);
     return $libry_loans;
   }
 
  /**
-   * Gets the users eligibility from the service The user must be logged in.
+   * Gets the users eligibility from the service. The user must be logged in.
    * 
-   * @return array $session //TODO
-   *   The session id from the service or null if there is a error.
+   * @return bool $eligible 
+   *   If the user is eligible to loan a film.
    */
-  public function getUserEligble() {
-    $response = $this->client->getUserEligble($this->session_id);
-    //file_put_contents("/var/www/drupalvm/drupal/web/debug/checkout3.txt", print_r($response , TRUE), FILE_APPEND);
+  public function getUserEligible() {
+    $response = $this->client->getUserEligible($this->session_id);
 
     if ($this->hasResult($response)) {
       $data = $this->getData($response);
@@ -139,7 +131,7 @@ class RediaFilmUser extends RediaFilmAbstractObject
       return true;
     } else {
       $this->status_message = 'Couldnt check the users status from the from film service';
-      //$this->logger->logError('Couldnt get the loans for the user from film service: %response', ['%response' => print_r($response, TRUE)]);
+      $this->logger->logError('Couldnt get the loans for the user from film service: %response', ['%response' => print_r($response, TRUE)]);
       return false;
     }
   }

@@ -2,32 +2,34 @@
 
 /**
  * @file
- * Film service Object.
+ * Film service abstract controoler
  */
 
 
 /**
- * Class RediaFilmObject.
+ * Class RediaFilmAbstractController.
  */
-abstract class RediaFilmAbstractObject
+abstract class RediaFilmAbstractController
 {
   protected $client;
+  protected $logger;
 
   /**
-   * RediaFilmObject constructor.
+   * RediaFilmAbstractController constructor.
    *
    * @param RediaFilmRequest $client
    *   The service endpoint for digital article service.
    */
   public function __construct(RediaFilmRequest $client) {
     $this->client = $client;
+    $this->logger = $client->getLogger();
   }
 
  /**
    * Check the result element in the response from the film service.
    * 
-   * @param array $response
-   *   The repsonse from the film service.
+   * @param bool $response
+   *   If the result element is set.
    */
   public function hasResult(array $response) {
     if (isset($response['result']) &&  isset($response['result']['result']) && $response['result']['result']) {
@@ -41,7 +43,7 @@ abstract class RediaFilmAbstractObject
    * Get the data element from the response from the film service.
    * 
    * @param array $response
-   *   The repsonse from the film service.
+   *   The data element of the film service respons.
    */
   public function getData(array $response) {
     if (isset($response['result']) &&  isset($response['result']['data'])) {

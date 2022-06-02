@@ -28,13 +28,19 @@ class RediaFilmRequest
    * RediaFilmRequest constructor.
    *
    * @param string $url
-   *   The service endpoint for digital article service.
+   *   The service endpoint for the Libry film service.
    * @param string $apikey
    *   The apikey to login with.
    * @param RediaFilmLogger $logger
    *   A custom logger to log calls and exceptions.
    * @param string $agency_id
    *   The id off the agency.
+   * @param string $version
+   *   The version of the service.
+   * @param string $language
+   *   The language of the service.
+   * @param string $customerId
+   *   The customerId for the service.
    */
   public function __construct(string $url, string $apikey, RediaFilmLogger $logger, string $agency_id, string $version, string $language, string $customerId = null) {
     $this->url = $url;
@@ -50,6 +56,16 @@ class RediaFilmRequest
     }
   }
 
+   /**
+   * Gets the logger.
+   * 
+   * @return RediaFilmLogger $logger.
+   *   The logger.
+   */
+  public function getLogger() {
+    return $this->logger;
+  }
+
   /**
    * Gets the customerid from the service.
    */
@@ -60,7 +76,6 @@ class RediaFilmRequest
     $params[] = $this->language;
     $params[] = $this->agency_id;
     $response = $this->filmServiceRequest('watch.getLibraryDetails', $params);
-    //file_put_contents("/var/www/drupalvm/drupal/web/debug/redia2.txt", print_r($response , TRUE), FILE_APPEND);
     if (isset($response['result']) &&  isset($response['result']['data']) && isset($response['result']['data']['customerId'])) {
       $this->customerId = $response['result']['data']['customerId'];
     } else {
@@ -169,7 +184,7 @@ class RediaFilmRequest
    * @return array $response
    *   The response from the film service.
    */
-  public function getUserEligble(string $session_id) {
+  public function getUserEligible(string $session_id) {
     $params = [];
 
     $params[] = $this->apikey;
