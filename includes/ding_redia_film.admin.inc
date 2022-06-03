@@ -45,11 +45,33 @@ function ding_redia_film_admin_form($form, &$form_state) {
     '#default_value' => variable_get('ding_redia_film_enable_logging', FALSE),
   ];
 
-  $form['revert_config'] = array(
+  $form['ding_redia_film_development'] = [
+    '#type' => 'fieldset',
+    '#title' => t('Development settings'),
+    '#description' => t('A token to use instead of the token you get when logging in to the openplatform.'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  ];
+
+  $form['ding_redia_film_development']['ding_redia_film_use_devel_token'] = [
+    '#type' => 'checkbox',
+    '#title' => t('Use development token'),
+    '#default_value' => variable_get('ding_redia_film_use_devel_token', FALSE),
+  ];
+
+  $default = variable_get('ding_redia_film_development_token', FALSE);
+  $form['ding_redia_film_development']['ding_redia_film_development_token'] = [
+    '#type' => 'textfield',
+    '#title' => t('Agency token'),
+    '#default_value' => $default ? $default : '',
+    '#description' => t('User token from the openplatform'),
+  ];
+
+  $form['revert_config'] = [
     '#type' => 'fieldset',
     '#title' => t('Revert configuration'),
     '#description' => t('Reverts the configuration after a update off DDBCMS has overridden them. Needs to be done every time DDBCMS is updated'),
-  );
+  ];
 
   $form['revert_config']['submit_button'] = [
     '#value' => t('Revert configuration'),

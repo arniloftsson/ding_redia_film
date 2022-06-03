@@ -52,7 +52,7 @@ class RediaFilmUserController extends RediaFilmAbstractController
     return $this->status_message;
   }
 
-    /**
+  /**
    * Gets the customerid from the service.
    * 
    * @param string $dbc_token
@@ -108,6 +108,25 @@ class RediaFilmUserController extends RediaFilmAbstractController
       $this->logger->logError('Couldnt get the loans for the user from film service: %response', ['%response' => print_r($response, TRUE)]);
     }
     return $libry_loans;
+  }
+
+  /**
+   * Has the user already checked out the film.
+   * 
+   * @param string $id
+   *   The token from the users login to the adgangsplatform.
+   * 
+   * @return bool $isCheckout
+   *   Is the film checked out.
+   */
+  public function isCheckedOut(string $id) {
+    $libry_loans = $this->getLoans();
+    foreach ($libry_loans as $loans) {
+      if ($loans->id == $id) {
+        return true;
+      }
+    } 
+    return false;
   }
 
  /**

@@ -119,6 +119,8 @@ function ding_redia_film_checkout_ajax($ting_object) {
 
   // Check if the logged-in user is a library user.
   global $user;
+  //$creds = ding_user_get_creds();
+
   if (!user_is_logged_in()) {
     // Trigger log-in (the checkout link will be triggered on success).
     $commands[] = ajax_command_ding_user_authenticate('');
@@ -127,17 +129,15 @@ function ding_redia_film_checkout_ajax($ting_object) {
     // Error not library user.
     $commands[] = ajax_command_ding_popup('ding_redia_film', t('Error'), '<p>' . t('Only library user can watch films.') . '</p>');
   }
-  elseif (false) {
-    //Todo make resident check!!!!
-    // Check if resident.
+  elseif (false && isset($creds['resident']) && $creds['resident']) {
+    // Error not resident.
     $commands[] = ajax_command_ding_popup('ding_redia_film', t('Error'), '<p>' . t('Only residents in the municipal user can watch films.') . '</p>');
   }
   else {
     // Try to checkout film.
     try {
       $libry_id = $ting_object->getLocalId();     
-      $checkout = ding_redia_film_can_user_checkout($libry_id );
-      $commands[] = ajax_command_ding_popup('ding_redia_film', t($checkout['title']), $checkout['html']);
+      $commands[] = ding_redia_film_can_user_checkout($libry_id );
     }
     catch (DingProviderAuthException $exception) {
       // The form may have thrown an Auth exception, so display login. (the
@@ -165,18 +165,24 @@ function ding_redia_film_can_user_checkout($libry_id) {
   $checkout = [];
   $redia_user = $redia_user = ding_redia_film_get_user_controller();
   //Todo har already loaned the film.
-  $is_loggedin = $redia_user->login("dYUvEdnrlDwfrkiaXBryPbCheMGzQOtsdOmZGbbB"); //todo gettoken
+  $token = ding_redia_film_get_user_token();
+  $is_loggedin = $redia_user->login($token);
+
   if (!$is_loggedin) {
-    $checkout['title'] = 'Error';
-    $checkout['html'] = '<p>' . t('Cant log in to the film service.') . '</p>';
-    return $checkout;
+    return ajax_command_ding_popup('ding_redia_film', t('Error'), '<p>' . t('Cant log in to the film service.') . '</p>');
+  }
+
+  $is_checked_out = $redia_user->isCheckedOut($libry_id);
+  if ($is_checked_out) {
+    $url = url('film/libry/watch/' . $libry_id);
+    $text = t('Your film is ready to watch. You will be redirected to the film in few seconds');
+    $html = '<div id="js-redia-film-checked-out" data-film-url="' . $url . '">' . $text . '</div>';
+    return ajax_command_ding_popup('ding_redia_film', t('Watch film'), $html);
   }
 
   $user_status = $redia_user->getUserEligible();
   if (!$user_status) {
-    $checkout['title'] = 'Error';
-    $checkout['html'] = '<p>' . t('Cant get credentials') . '</p>';
-    return $checkout;
+    return ajax_command_ding_popup('ding_redia_film', t('Error'), '<p>' . t('Cant get credentials') . '</p>');
   }
 
   if ($redia_user->isElligble) {
@@ -198,9 +204,7 @@ function ding_redia_film_user_not_elligble_popup($redia_user) {
     '%next_loan_date' =>$redia_user->nextLoanDate,
   ];
   $text = t('You cant loan the film. You have used %used_loans loans out of %number_of_loans loans within %period days. Next date you can loan is %next_loan_date', $replacements);
-  $checkout['title'] = 'Error';
-  $checkout['html'] = '<p>' . $text  . '</p>';;
-  return $checkout;
+  return ajax_command_ding_popup('ding_redia_film', t('Error'), '<p>' . $text  . '</p>');
 }
 
 /**
@@ -230,8 +234,8 @@ function ding_redia_film_create_checkout_popup($libry_id , $redia_user) {
   ];
 
   $checkout['title'] = 'Watch film';
-  $checkout['html'] = theme('ding_redia_film_checkout', $variables);
-  return $checkout;
+  $html = theme('ding_redia_film_checkout', $variables);
+  return ajax_command_ding_popup('ding_redia_film', t('Watch film'), $html);
 }
 
 /**
@@ -239,9 +243,11 @@ function ding_redia_film_create_checkout_popup($libry_id , $redia_user) {
  */
 function ding_redia_film_watch($id) {
   drupal_page_is_cacheable(FALSE);
+  $token = ding_redia_film_get_user_token();
 
+  //file_put_contents("/var/www/drupalvm/drupal/web/debug/token1.txt", print_r($token, TRUE), FILE_APPEND);
   $redia_user = ding_redia_film_get_user_controller();
-  $token = 'dYUvEdnrlDwfrkiaXBryPbCheMGzQOtsdOmZGbbB';
+  $object_controller = ding_redia_film_get_object_controller();
 
   //Todo handle failed logins.
   $logged_in = $redia_user->login($token);
@@ -255,17 +261,17 @@ function ding_redia_film_watch($id) {
     //drupal set message
     // goto somwhere
   }
-
-  $object_controller = ding_redia_film_get_object_controller();
-  // Todo Check if already loaned.
   $libry_object = $object_controller->getObject($id);
-
-  // Todo Handle in one call
-  $object_controller->createLoan($redia_user, $libry_object);
+  $is_checked_out = $redia_user->isCheckedOut($id);
+  if (!$is_checked_out) {
+     $object_controller->createLoan($redia_user, $libry_object);
+  }
+  
   $libry_object->token = $object_controller->getToken($redia_user);
 
   // In order to facilitate full screen view mode.
-  drupal_add_http_header('Feature-Policy', 'fullscreen "self" https://play.libry.dk/;');
+  //drupal_add_http_header('Feature-Policy', 'fullscreen "self" https://play.libry.dk/');
+  drupal_add_http_header('Permissions-Policy', 'fullscreen=(self "https://play.libry.dk")');
   
   return theme('ding_redia_film_watch', ['object' => $libry_object]);
 }
@@ -377,13 +383,8 @@ function ding_redia_film_is_libry_film($entity) {
    * 
    */
 function ding_redia_film_has_trailer($id) {
-  //Todo move to controller.
   $object_controller = ding_redia_film_get_object_controller();
-  $libry_object = $object_controller->getObject($id);
-  if (isset($libry_object->trailers) && !empty($libry_object->trailers)) {
-    return true;
-  }
-  return false;
+  return $object_controller->hasTrailer($id);
 }
 
 /**
@@ -442,8 +443,12 @@ function _ding_redia_film_get_client() {
 }
 
 function ding_redia_film_get_user_token() {
-  $token = ding_provider_invoke('openplatform_token', 'for_user');
-  return $token;
+  $use_devel_token = variable_get('ding_redia_film_use_devel_token', FALSE);
+  $devel_token = variable_get('ding_redia_film_development_token', FALSE);
+  if ($use_devel_token && $devel_token) {
+    return $devel_token;
+  }
+  return ding_provider_invoke('openplatform_token', 'for_user');
 }
 
 /**
@@ -467,7 +472,7 @@ function ding_redia_film_get_loans() {
   $loan_items = '';
 
   $redia_user =  ding_redia_film_get_user_controller();
-  $token = 'dYUvEdnrlDwfrkiaXBryPbCheMGzQOtsdOmZGbbB';
+  $token = ding_redia_film_get_user_token();
   $status = $redia_user->login($token);
   $loans = $redia_user->getLoans();
   foreach ($loans as $loan) {

@@ -7,5 +7,9 @@
       evt.preventDefault();
       $('body').removeClass('popupbar-is-open');
     });
-  });
+    if ($('#js-redia-film-checked-out').length) {
+      var url = $('#js-redia-film-checked-out').attr("data-film-url");
+      window.location.pathname = url;
+    }
+   });
 }(jQuery));

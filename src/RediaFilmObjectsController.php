@@ -33,8 +33,7 @@ class RediaFilmObjectsController extends RediaFilmAbstractController
    * 
    */
   public function hasTrailer($identifier) {
-    $objects = $this->getObjects([$identifier]);
-    $libry_object = reset($objects);
+    $libry_object = $this->getObject($identifier);
     if (isset($libry_object->trailers) && !empty($libry_object->trailers)) {
       return true;
     }
