@@ -270,7 +270,7 @@ function ding_redia_film_watch($id) {
   $libry_object->token = $object_controller->getToken($redia_user);
 
   // In order to facilitate full screen view mode.
-  drupal_add_http_header('Feature-Policy', 'fullscreen "self" https://play.libry.dk/');
+  drupal_add_http_header('Feature-Policy', 'fullscreen "self" https://play.libry.dk');
   drupal_add_http_header('Permissions-Policy', 'fullscreen=(self "https://play.libry.dk")');
   
   return theme('ding_redia_film_watch', ['object' => $libry_object]);

@@ -11,5 +11,11 @@
       var url = $('#js-redia-film-checked-out').attr("data-film-url");
       window.location.pathname = url;
     }
+    if ($('#popupbar-ding_redia_film').length) {
+      $('.popupbar-close').mousedown(function () {
+        var media = $("#redia-film-trailer-video").get(0);
+        media.pause();
+      });
+    }
    });
 }(jQuery));

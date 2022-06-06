@@ -2,19 +2,13 @@
 
 /**
  * @file
- * A loan status item.
+ * A film trailer.
  * 
  */
 ?>
 
 <div class="redia-film-trailer">
-  <!-- <iframe id="redia-film-trailer-iframe"
-   title="Movie Trailer" 
-   width="1024"
-   height="436"
-   src="http://link.theplatform.eu/s/jGxigC/media/mBVxOTNEkFyk">
-  </iframe> -->
-  <video controls autoplay="true">
+  <video id="redia-film-trailer-video" controls autoplay="true">
   <?php foreach($trailers as $trailer): ?>
     <source src="<?php print $trailer['source'] ?>" 
       type="<?php print $trailer['format']?>">
