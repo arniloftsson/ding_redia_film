@@ -92,7 +92,7 @@ class RediaFilmObjectsController extends RediaFilmAbstractController
       $libry_object = new RediaFilmObject();
       $libry_object->id = isset($item_data['identifier']) ? $item_data['identifier'] : null;
       $libry_object->tingObjectId = isset($item_data['faust']) ? $item_data['faust'] : null;
-      $libry_object->title = isset($item_data['title']) ? $item_data['title'] : null;
+      $libry_object->title = isset($item_data['originalTitle']) ? $item_data['originalTitle'] : null;
       $libry_object->creators = isset($item_data['creators']) ? $item_data['creators'] : null;
       $libry_object->info = $item_data;
       if (isset($item_data['media']) && isset($item_data['media']['trailers'])) {

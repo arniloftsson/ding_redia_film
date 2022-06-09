@@ -59,7 +59,6 @@ function ding_redia_film_theme($existing, $type, $theme, $path) {
         'checkout_status' => '',
         'checkout_yes_button' => '',
         'checkout_cancel_button' => '',
-        'watch_link' => '',
       ],
       'template' => 'ding-redia-film-checkout',
       'path' => $path . '/templates',
@@ -224,13 +223,15 @@ function ding_redia_film_create_checkout_popup($libry_id , $redia_user) {
   $checkout_cancel_button = t('Cancel');
 
   $watch_link = '/film/libry/watch/' . $libry_id;
+  $options = ['query' => ['wantsToCheckout' => true]];
+  $url = url($watch_link, $options);
 
   $variables = [
     'checkout_confirmation' => $checkout_confirmation,
     'checkout_status' => $checkout_status,
-    'checkout_yes_button' => $checkout_yes_button,
+    // l() urlencodes our parameters so we make the link our selves.
+    'checkout_yes_button' => '<a href="' . $url . '">'  . $checkout_yes_button . '</a>',
     'checkout_cancel_button' => $checkout_cancel_button,
-    'watch_link' => $watch_link
   ];
 
   $checkout['title'] = 'Watch film';
@@ -243,28 +244,45 @@ function ding_redia_film_create_checkout_popup($libry_id , $redia_user) {
  */
 function ding_redia_film_watch($id) {
   drupal_page_is_cacheable(FALSE);
+
+  global $user;
+
+  if (!user_is_logged_in()) {
+    // Trigger log-in return here.
+    $url = ding_redia_film_login_url(current_path());
+    //file_put_contents("/var/www/drupalvm/drupal/web/debug/watch3.txt", print_r($url, TRUE), FILE_APPEND);
+    drupal_goto($url);
+  }
+
   $token = ding_redia_film_get_user_token();
 
-  //file_put_contents("/var/www/drupalvm/drupal/web/debug/token1.txt", print_r($token, TRUE), FILE_APPEND);
   $redia_user = ding_redia_film_get_user_controller();
   $object_controller = ding_redia_film_get_object_controller();
 
-  //Todo handle failed logins.
   $logged_in = $redia_user->login($token);
   If (!$logged_in) {
-    //logged in popup
-    //drupal set message
-    // goto somwhere
+    drupal_set_message(t('Couldnt log into the film service. Please try again later or contact your library'));
+    drupal_goto('<front>');
   }
-  $eligbible = $redia_user->getUserEligible();
-  If (!$eligbible) {
-    //drupal set message
-    // goto somwhere
+
+  $parameters = drupal_get_query_parameters();
+  file_put_contents("/var/www/drupalvm/drupal/web/debug/para1.txt", print_r($parameters , TRUE), FILE_APPEND);
+  $wants_to_checkout = false;
+  if (isset($parameters['wantsToCheckout']) && $parameters['wantsToCheckout']) {
+    $wants_to_checkout = true;
   }
+
   $libry_object = $object_controller->getObject($id);
   $is_checked_out = $redia_user->isCheckedOut($id);
-  if (!$is_checked_out) {
+
+  // We only checkout if the user has confirmed.
+  if (!$is_checked_out && $wants_to_checkout) {
      $object_controller->createLoan($redia_user, $libry_object);
+  } 
+  elseif (!$is_checked_out && !$wants_to_checkout) {
+    // Todo go to film.
+    drupal_set_message(t('You need to check the film out before watching it'));
+    drupal_goto('<front>');
   }
   
   $libry_object->token = $object_controller->getToken($redia_user);
@@ -442,6 +460,20 @@ function _ding_redia_film_get_client() {
   return $client;
 }
 
+/**
+ * Generate a login url.
+ *
+ * @return string
+ *   Login url.
+ */
+function ding_redia_film_login_url($destination = '') {
+  return ding_provider_invoke(
+    'openplatform_token',
+    'login_url',
+    ['query' => ['destination' => $destination]]
+  );
+}
+
 function ding_redia_film_get_user_token() {
   $use_devel_token = variable_get('ding_redia_film_use_devel_token', FALSE);
   $devel_token = variable_get('ding_redia_film_development_token', FALSE);
@@ -475,6 +507,8 @@ function ding_redia_film_get_loans() {
   $token = ding_redia_film_get_user_token();
   $status = $redia_user->login($token);
   $loans = $redia_user->getLoans();
+  ding_redia_film_get_loans_from_well($loans);
+  file_put_contents("/var/www/drupalvm/drupal/web/debug/time5.txt", print_r($loans , TRUE), FILE_APPEND);
   foreach ($loans as $loan) {
     $loan = ding_redia_film_prepare_loan_item($loan);
     $loan_items .= theme('ding_redia_film_loan', ['loan' => $loan]);
@@ -484,12 +518,88 @@ function ding_redia_film_get_loans() {
 }
 
 /**
+ * Get data on the loans from the well.
+ * 
+ */
+function ding_redia_film_get_loans_from_well(&$loans) {
+  $query = ding_redia_film_make_well_query($loans); 
+  file_put_contents("/var/www/drupalvm/drupal/web/debug/time4.txt", print_r($loans , TRUE), FILE_APPEND);
+  file_put_contents("/var/www/drupalvm/drupal/web/debug/time6.txt", print_r($query , TRUE), FILE_APPEND);
+  $results = ding_redia_film_search($query, 1, 50);
+  file_put_contents("/var/www/drupalvm/drupal/web/debug/time2.txt", print_r($results  , TRUE), FILE_APPEND);
+  foreach ($results as $ting_id => $object) {
+    $id = $object->getLocalId();
+    if (isset($loans[$id])) {
+      $loans[$id]->tingObjectId = $ting_id;
+      $image = theme('ting_object_cover', array('elements' => array('#object' => $object, '#image_style' => 'ting_search_carousel')));
+      $loans[$id]->cover = $image;
+    }
+  }
+}
+
+/**
+ * Get data on the loans from the well.
+ * 
+ */
+function ding_redia_film_make_well_query($loans) {
+  $query = '';
+  $first_element = true;
+  foreach ($loans as $loan) {
+    if ($first_element) {
+      $query .= $loan->id;
+      $first_element = false;
+    } else {
+      $query .= ' OR ' . $loan->id;
+    }
+  }
+  return $query;
+}
+
+  /**
+   * Find ting entities from a query.
+   *
+   * @param string $query
+   *   Query to use.
+   * @param int $start
+   *   Offset to start from.
+   * @param int $size
+   *   Search chunk size to use.
+   *
+   * @return array
+   *   Array of found ting entities (an array).
+   */
+  function ding_redia_film_search($query, $start, $size) {
+    $entities = [];
+
+    $cqlDoctor = new TingSearchCqlDoctor($query);
+
+    $sal_query = ting_start_query()
+      ->withRawQuery($cqlDoctor->string_to_cql())
+      ->withPage($start)
+      ->withCount($size)
+      ->withPopulateCollections(FALSE);
+
+    $sal_query->reply_only = true;
+    $results = $sal_query->execute();
+    file_put_contents("/var/www/drupalvm/drupal/web/debug/time3.txt", print_r($results  , TRUE), FILE_APPEND);
+    foreach ($results->openSearchResult->collections as $collection) {
+      $object = $collection->getPrimary_object();
+      $entities[$object->getId()] = $object;
+    }
+    return $entities;
+  }
+
+/**
  * Watch film.
  */
 function ding_redia_film_prepare_loan_item($loan) {
   //TOdo real cover.
-  $loan->cover = '<img alt="Andrey Bogatyrev, Nikita Rozhdestvenskiy, Konnstantin Simonov: The red ghost" src="http://ddbcms.test/sites/default/files/styles/ding_primary_large/public/ting/covers/ODcwOTcwLWJhc2lzOjYxNjQ0MTEz.jpg?itok=Szxb4aYv">';
-  $path = 'ting/object/870970-basis:61644113'; //TOdo make real path
+  $devel_cover = variable_get('ding_redia_film_use_devel_cover', FALSE);
+  if ($devel_cover) {
+    $loan->cover = '<div  class="ting-cover" data-ting-cover-object-id="870970-basis:52181666" data-ting-cover-style="ting_search_carousel"></div>';
+    drupal_add_js(drupal_get_path('module', 'ting_covers') . '/js/ting-covers.js');
+  }
+  $path = 'ting/object/' . $loan->tingObjectId; 
   $loan->title = l($loan->title, $path);
   if (isset($loan->creators)) {
     // We only show the 3 first creators.

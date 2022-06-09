@@ -30,6 +30,10 @@
   margin-right: 20px;
 }
 
+.material-item .redia-film-object-cover .ting-cover {
+  padding-left: 0px;
+}
+
 .redia-film-object-content {
   width: 47%;
   display: flex;
@@ -62,3 +66,4 @@
 .popupbar #popupbar-ding_redia_film {
 	padding: 40px 0 20px;
 }
+

@@ -247,14 +247,14 @@ class RediaFilmRequest
         $cookieJar = \GuzzleHttp\Cookie\CookieJar::fromArray($values, $domain['host']);
         $options['cookies'] = $cookieJar;
       }
-      //file_put_contents("/var/www/drupalvm/drupal/web/debug/redia1.txt", print_r($options , TRUE), FILE_APPEND);
-      //file_put_contents("/var/www/drupalvm/drupal/web/debug/redia3.txt", print_r(json_encode($options['json']) , TRUE), FILE_APPEND);
       $this->logger->logDebug('Call options to libry service: %options', ['%options' => json_encode($options)]);
-
+      $startTime = explode(' ', microtime());
       $response = $client->post($this->url, $options);
       $content = $response->getBody()->getContents();
       $decoded_response = json_decode($content, true);
-
+      $stopTime = explode(' ', microtime());
+      $time = floatval(($stopTime[1]+$stopTime[0]) - ($startTime[1]+$startTime[0]));
+      file_put_contents("/var/www/drupalvm/drupal/web/debug/time1.txt", print_r($method . ':' . $time . "\n" , TRUE), FILE_APPEND);
       $this->logger->logDebug('Response from libry service: %json', ['%json' => $content]);
 
     } catch (Exception $e) {

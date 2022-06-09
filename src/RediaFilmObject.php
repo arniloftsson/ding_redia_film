@@ -17,6 +17,7 @@ class RediaFilmObject
   public $info;
   public $token;
   public $trailers;
+  public $cover;
 
   public $loanDate;
   public $expireDate;

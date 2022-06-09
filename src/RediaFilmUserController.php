@@ -77,11 +77,13 @@ class RediaFilmUserController extends RediaFilmAbstractController
 
  /**
    * Gets the users loan from the service The user must be logged in.
+   * @param bool $getObjects
+   *   Whether to get object data from the service.
    * 
    * @return array $libry_loans
    *   The users loans from the service or empty array if none. Null if the request failes.
    */
-  public function getLoans() {
+  public function getLoans($getObjects = true) {
     $libry_loans = null;
     $ids = [];
     $response = $this->client->getLoans($this->session_id);
@@ -91,6 +93,10 @@ class RediaFilmUserController extends RediaFilmAbstractController
         if (isset($loan['identifier'])) {
           $ids[] = $loan['identifier'];
         }
+      }
+      if (!$getObjects) {
+        // We only want the ids.
+        return $ids;
       }
       $objects = new RediaFilmObjectsController($this->client);
       $libry_loans = $objects->getObjects($ids);
@@ -120,9 +126,9 @@ class RediaFilmUserController extends RediaFilmAbstractController
    *   Is the film checked out.
    */
   public function isCheckedOut(string $id) {
-    $libry_loans = $this->getLoans();
+    $libry_loans = $this->getLoans(false);
     foreach ($libry_loans as $loans) {
-      if ($loans->id == $id) {
+      if ($loans == $id) {
         return true;
       }
     } 
