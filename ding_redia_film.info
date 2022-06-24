@@ -11,4 +11,3 @@ files[] = src/RediaFilmObject.php
 files[] = src/RediaFilmAbstractController.php
 stylesheets[all][] = css/ding_redia_film.css
 dependencies[] = ding_provider
-

@@ -2,9 +2,8 @@
 
 /**
  * @file
- * Film service abstract controoler
+ * Film service abstract controller
  */
-
 
 /**
  * Class RediaFilmAbstractController.
@@ -27,29 +26,27 @@ abstract class RediaFilmAbstractController
 
  /**
    * Check the result element in the response from the film service.
-   * 
-   * @param bool $response
+   *
+   * @param array $response
    *   If the result element is set.
    */
   public function hasResult(array $response) {
-    if (isset($response['result']) &&  isset($response['result']['result']) && $response['result']['result']) {
-      return TRUE;
-    } else {
-      return false;
-    }
+    return isset($response['result']) &&  isset($response['result']['result']) && $response['result']['result'];
   }
 
  /**
    * Get the data element from the response from the film service.
-   * 
+   *
    * @param array $response
    *   The data element of the film service respons.
+   *
+   * @return mixed|null
    */
   public function getData(array $response) {
     if (isset($response['result']) &&  isset($response['result']['data'])) {
       return $response['result']['data'];
-    } else {
-      return null;
     }
+
+    return null;
   }
 }
