@@ -511,6 +511,9 @@ function ding_redia_film_get_loans() {
   $loan_items = '';
 
   $redia_user =  ding_redia_film_get_user_controller();
+  $token = ding_redia_film_get_user_token();
+  $status = $redia_user->login($token);
+  // Todo handle login failure.
   $loans = $redia_user->getLoans();
   ding_redia_film_get_loans_from_well($loans);
   foreach ($loans as $loan) {

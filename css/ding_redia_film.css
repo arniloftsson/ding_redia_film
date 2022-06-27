@@ -66,3 +66,23 @@
 .popupbar #popupbar-ding_redia_film {
 	padding: 40px 0 20px;
 }
+
+.redia-film-status-progress-bar {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.redia-film-status-progress-bar-inner {
+  width: 80%;
+  height: 80%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #fff;
+  box-shadow: 0px 0px 7px 0px rgba(0, 0, 0, 0.1);
+}
