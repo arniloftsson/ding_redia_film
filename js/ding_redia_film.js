@@ -7,9 +7,9 @@
       evt.preventDefault();
       $('body').removeClass('popupbar-is-open');
     });
-    if ($('#js-redia-film-checked-out').length) {
-      var url = $('#js-redia-film-checked-out').attr("data-film-url");
-      window.location.pathname = url;
+    let checkedOut = $('#js-redia-film-checked-out');
+    if (checkedOut.length) {
+      window.location.pathname = checkedOut.attr("data-film-url");
     }
     if ($('#popupbar-ding_redia_film').length) {
       $('.popupbar-close').mousedown(function () {

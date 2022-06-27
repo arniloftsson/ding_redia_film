@@ -13,7 +13,7 @@ class RediaFilmObjectsController extends RediaFilmAbstractController
 {
   /**
    * Creates a loan at the service. The user must be logged in.
-   * 
+   *
    * @param RediaFilmUserController $user
    *   The film service user.
    * @param RediaFilmObject $object
@@ -21,45 +21,43 @@ class RediaFilmObjectsController extends RediaFilmAbstractController
    */
   public function createLoan(RediaFilmUserController $user, RediaFilmObject $object) {
     $response = $this->client->createLoan($object->id, $user->getSessionid());
-    
-    //file_put_contents("/var/www/drupalvm/drupal/web/debug/create1.txt", print_r($response , TRUE), FILE_APPEND);
+
+    // @TODO: No feedback on success or failure.
   }
 
   /**
    * Checks if a film has trailer.
-   * 
+   *
    * @param string $identifier
    *   The identifier off the object.
-   * 
    */
   public function hasTrailer($identifier) {
     $libry_object = $this->getObject($identifier);
-    if (isset($libry_object->trailers) && !empty($libry_object->trailers)) {
-      return true;
-    }
-    return false;
+
+    return isset($libry_object->trailers) && !empty($libry_object->trailers);
   }
 
    /**
     * Gets at film object from the service.
-    * 
+    *
     * @param string $identifier
     *   The identifier off the object.
-    * 
-    * @return RediaFilmObject 
+    *
+    * @return RediaFilmObject
     *   The objects from the service.
     */
   public function getObject($identifier) {
     $objects = $this->getObjects([$identifier]);
+
     return reset($objects);
   }
 
    /**
     * Get film objects from the service.
-    * 
+    *
     * @param array $identifiers
     *   The identifiers off the object.
-    * 
+    *
     * @return array $libry_objects
     *   The objects from the service.
     */
@@ -71,21 +69,23 @@ class RediaFilmObjectsController extends RediaFilmAbstractController
       foreach ($data as $key => $object) {
         if (isset($object['data'])) {
           $libry_objects[$key] = $this->createObject($object['data']);
-        }      
+        }
       }
-    } else {
-      $this->logger->logError('Couldnt get the objects from the film service: %response', ['%response' => print_r($response, TRUE)]);
     }
+    else {
+      $this->logger->logError('Could not get the objects from the film service: %response', ['%response' => print_r($response, TRUE)]);
+    }
+
     return $libry_objects;
   }
 
    /**
     * Creates a RediaFilmObject.
-    * 
+    *
     * @param array $item_data
     *   The idata for the object.
-    * 
-    * @return RediaFilmObject 
+    *
+    * @return RediaFilmObject
     *   The objects from the service.
     */
     public function createObject(array $item_data) {
@@ -95,20 +95,25 @@ class RediaFilmObjectsController extends RediaFilmAbstractController
       $libry_object->title = isset($item_data['originalTitle']) ? $item_data['originalTitle'] : null;
       $libry_object->creators = isset($item_data['creators']) ? $item_data['creators'] : null;
       $libry_object->info = $item_data;
+
       if (isset($item_data['media']) && isset($item_data['media']['trailers'])) {
         $libry_object->trailers = $item_data['media']['trailers'];
       }
+
       return $libry_object;
     }
 
-   /**
+  /**
    * Gets the token from the service in order to watch the film. The user must be logged in.
-   * 
+   *
+   * @TODO: Wrong parmeter description?
    * @param string $session_id
    *   The session id.
-   * 
-   * @return string $token //TODO handle errors
+   *
+   * @return string|null $token
    *   The session id from the service or null if there is a error.
+   *
+   * @TODO handle errors
    */
   public function getToken(RediaFilmUserController $user) {
     $token = null;
@@ -116,9 +121,10 @@ class RediaFilmObjectsController extends RediaFilmAbstractController
     if ($this->hasResult($response)) {
       $data = $this->getData($response);
       if (isset($data['token'])) {
-        return $data['token'];
+        $token = $data['token'];
       }
     }
+
     return $token;
   }
 }
