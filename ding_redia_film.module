@@ -43,6 +43,12 @@ function ding_redia_film_menu() {
     'access arguments' => ['access content'],
   ];
 
+  $items['film/libry/loans'] = [
+    'title' => 'Libry Film get loans',
+    'page callback' => 'ding_redia_film_check_loans_ajax',
+    'access arguments' => ['access content'],
+  ];
+
   return $items;
 }
 
@@ -631,6 +637,56 @@ function ding_redia_film_prepare_loan_item($loan) {
   $loan->watchButton = drupal_render($watchButton);
 
   return $loan;
+}
+
+/**
+ * Implements hook_page_alter().
+ *
+ * If the user is logged in we add javascript to check if they have film loans. We do it via ajac 
+ * performance reasons.
+ */
+function ding_redia_film_page_alter(&$page) {
+  // Check if the logged-in user is a library user.
+  global $user;
+
+  if (user_is_logged_in() && ding_user_is_provider_user($user)) {
+    drupal_add_js(drupal_get_path('module', 'ding_redia_film') . '/js/ding_redia_film_loans.js');
+    drupal_add_js([
+      'dingRediaFilm' => [
+        'url' => '/film/libry/loans',
+      ],
+    ], 'setting');
+  }
+}
+
+/**
+ * Get number off user loans.
+ */
+function ding_redia_film_check_loans_ajax() {
+  $loan_count = 0;
+
+  if (isset($_SESSION['ding_redia_film_loan_count'])) {
+    $loan_count = $_SESSION['ding_redia_film_loan_count'];
+  } else {
+    $redia_user =  ding_redia_film_get_user_controller();
+    $token = ding_redia_film_get_user_token();
+    $status = $redia_user->login($token);
+    if ($status) {
+      $loans = $redia_user->getLoans();
+      $loan_count = count($loans);
+      $_SESSION['ding_redia_film_loan_count'] = $loan_count;
+    }
+  }
+  if ($loan_count == 0) {
+    drupal_json_output(null);
+  } else {
+    $loans = ddbasic_account_count_loans() - ddbasic_account_count_overdue_loans() + $loan_count;
+    $output = '<span>' . t('Loans') . '<span class="menu-item-count">' . $loans . '</span></span>';
+    drupal_json_output($output);
+
+  }
+
+  drupal_exit();
 }
 
 /**
