@@ -511,6 +511,25 @@ function _ding_redia_film_debug_log($message, array $variables = []) {
 }
 
 /**
+ * Get users film status.
+ */
+function ding_redia_film_get_status() {
+  $redia_user =  ding_redia_film_get_user_controller();
+  $token = ding_redia_film_get_user_token();
+  $status = $redia_user->login($token);
+  if ($status) {
+    // Todo handle login failure.
+    $redia_user->getUserEligible();
+    drupal_add_js(drupal_get_path('module', 'ding_redia_film') . '/js/jquery.easypiechart.js');
+    drupal_add_js(drupal_get_path('module', 'ding_redia_film') . '/js/ding_redia_film_status.js');
+    file_put_contents("/var/www/drupalvm/drupal/web/debug/chart2.txt", print_r($redia_user, TRUE), FILE_APPEND);
+    return theme('ding_redia_film_status', ['user' => $redia_user]);
+  } else {
+    return '';
+  }
+}
+
+/**
  * Get users film loans.
  */
 function ding_redia_film_get_loans() {

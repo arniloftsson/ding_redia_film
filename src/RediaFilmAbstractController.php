@@ -30,7 +30,7 @@ abstract class RediaFilmAbstractController
    * @param array $response
    *   If the result element is set.
    */
-  public function hasResult(array $response) {
+  public function hasResult($response) {
     return isset($response['result']) &&  isset($response['result']['result']) && $response['result']['result'];
   }
 

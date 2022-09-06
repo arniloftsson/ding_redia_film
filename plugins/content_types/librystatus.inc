@@ -23,7 +23,7 @@ function ding_redia_film_librystatus_content_type_render($subtype, $conf, $panel
   $block->delta = 'librystatus';
   $block->title = t('Film Status');
 
-  $block->content = t('Status');
+  $block->content = ding_redia_film_get_status();
 
   return $block;
 }

@@ -20,6 +20,7 @@ class RediaFilmUserController extends RediaFilmAbstractController
   public $nextLoanDate;
   public $loanDuration;
   public $isElligble = false;
+  public $loanPercentage;
 
   /**
    * The session id for the user.
@@ -154,12 +155,15 @@ class RediaFilmUserController extends RediaFilmAbstractController
       $data = $this->getData($response);
       $this->maxNumberOfLoans = isset($data['maxNumberOfLoans']) ? $data['maxNumberOfLoans'] : 0;
       $this->currentLoanCount = isset($data['currentLoanCount']) ? $data['currentLoanCount'] : 0;
-      $this->loanDuration = isset($data['loanDuration'] ) ? $data['loanDuration'] : 0;
+      $this->loanDuration = isset($data['loanDuration']) ? $data['loanDuration'] : 0;
       $this->nextLoanDate = isset($data['nextLoanDate']) ? date('d-m-Y', $data['nextLoanDate']) : 0;
-      if ($this->currentLoanCount < $this->maxNumberOfLoans ) {
+      if ($this->currentLoanCount < $this->maxNumberOfLoans) {
         $this->isElligble = true;
       }
+      //Testcode
+      $this->maxNumberOfLoans = 2;
 
+      $this->loanPercentage = (int) ($this->currentLoanCount / $this->maxNumberOfLoans * 100);
       return true;
     }
     else {

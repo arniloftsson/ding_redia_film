@@ -1,18 +1,15 @@
-
 <?php
+
 /**
  * @file
- * The initial react code
  *
  *
  */
 ?>
-
-<!-- <div class="redia-film-status">
-    <div class="redia-film-status-progress-bar">
-        <div class="redia-film-status-progress-bar-inner">
-            <span><?php print $user_loans?></a></span>
-        </div>
+<div class="redia-film-status">
+    <div class="redia-film-status-title">Film</div>
+    <div class="redia-film-status-chart" data-percent="<?php print $user->loanPercentage?>" data-scale-color="#ffb400">
+        <?php print $user->currentLoanCount?>
     </div>
-</div> -->
-
+    <div class="redia-film-status-max-loans"><?php print t('Out of %currentloancount', ['%currentloancount' => $user->maxNumberOfLoans]) ?></div>
+</div>
