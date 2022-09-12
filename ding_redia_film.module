@@ -207,8 +207,8 @@ function ding_redia_film_user_not_elligble_popup($redia_user) {
   $replacements = [
     '%used_loans' =>  $redia_user->currentLoanCount,
     '%number_of_loans' =>  $redia_user->maxNumberOfLoans,
-    '%period' =>$redia_user->loanDuration,
-    '%next_loan_date' =>$redia_user->nextLoanDate,
+    '%period' => $redia_user->loanDuration,
+    '%next_loan_date' => $redia_user->nextLoanDate,
   ];
   $text = t('You cant loan the film. You have used %used_loans loans out of %number_of_loans loans within %period days. Next date you can loan is %next_loan_date', $replacements);
 
@@ -540,6 +540,7 @@ function ding_redia_film_get_loans() {
   $status = $redia_user->login($token);
   // Todo handle login failure.
   $loans = $redia_user->getLoans();
+  file_put_contents("/var/www/drupalvm/drupal/web/debug/film1.txt", print_r($loans, TRUE), FILE_APPEND);
   ding_redia_film_get_loans_from_well($loans);
   foreach ($loans as $loan) {
     $loan = ding_redia_film_prepare_loan_item($loan);
@@ -555,6 +556,7 @@ function ding_redia_film_get_loans() {
 function ding_redia_film_get_loans_from_well(&$loans) {
   $query = ding_redia_film_make_well_query($loans);
   $results = ding_redia_film_search($query, 1, 50);
+  file_put_contents("/var/www/drupalvm/drupal/web/debug/film2.txt", print_r($results, TRUE), FILE_APPEND);
   foreach ($results as $ting_id => $object) {
     $id = $object->getLocalId();
     if (isset($loans[$id])) {

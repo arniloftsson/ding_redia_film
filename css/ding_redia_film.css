@@ -89,3 +89,7 @@
   line-height: 110px;
   z-index: 2;
 }
+
+.redia-film-next-loan {
+  border-top: 1px solid rgba(38,38,38,.2)
+}

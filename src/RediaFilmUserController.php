@@ -13,14 +13,19 @@ class RediaFilmUserController extends RediaFilmAbstractController
   private $session_id;
   private $is_loggedin = false;
   private $status_message;
-
   public $status;
+
   public $maxNumberOfLoans;
   public $currentLoanCount;
-  public $nextLoanDate;
   public $loanDuration;
   public $isElligble = false;
   public $loanPercentage;
+
+  public $nextLoanDate;
+  public $nextLoanDateRaw;
+  public $nextLoanDays;
+  public $nextLoanHours;
+  public $nextLoanMinutes;
 
   /**
    * The session id for the user.
@@ -91,6 +96,7 @@ class RediaFilmUserController extends RediaFilmAbstractController
     $libry_loans = null;
     $ids = [];
     $response = $this->client->getLoans($this->session_id);
+    file_put_contents("/var/www/drupalvm/drupal/web/debug/film3.txt", print_r($response , TRUE), FILE_APPEND);
     if ($this->hasResult($response)) {
       $loans = $this->getData($response);
       foreach ($loans as $loan) {
@@ -157,11 +163,15 @@ class RediaFilmUserController extends RediaFilmAbstractController
       $this->currentLoanCount = isset($data['currentLoanCount']) ? $data['currentLoanCount'] : 0;
       $this->loanDuration = isset($data['loanDuration']) ? $data['loanDuration'] : 0;
       $this->nextLoanDate = isset($data['nextLoanDate']) ? date('d-m-Y', $data['nextLoanDate']) : 0;
+      $this->nextLoanDateRaw = isset($data['nextLoanDate']) ?  $data['nextLoanDate'] : 0;
       if ($this->currentLoanCount < $this->maxNumberOfLoans) {
         $this->isElligble = true;
       }
+      file_put_contents("/var/www/drupalvm/drupal/web/debug/film4.txt", print_r($data['nextLoanDate'], TRUE), FILE_APPEND);
       //Testcode
       $this->maxNumberOfLoans = 2;
+
+      $this->calculateNextLoanDate();
 
       $this->loanPercentage = (int) ($this->currentLoanCount / $this->maxNumberOfLoans * 100);
       return true;
@@ -171,6 +181,32 @@ class RediaFilmUserController extends RediaFilmAbstractController
       $this->logger->logError('Could not get the loans for the user from film service: %response', ['%response' => print_r($response, TRUE)]);
 
       return false;
+    }
+  }
+
+  /**
+   * Calculate the difference to nextloandate
+   *
+   */
+  private function calculateNextLoanDate()
+  {
+    // Debug code.
+    $this->isElligble = false;
+    if ($this->isElligble) {
+      $this->nextLoanDays = 0;
+      $this->nextLoanHours = 0;
+      $this->nextLoanMinutes = 0;
+    } else {
+      // Debug code.
+      // $next = new DateTime();
+      // $next->setTimestamp($this->nextLoanDateRaw);
+      $next = new DateTime('next thursday');
+      $now = new DateTime();
+      $diff = ($now->diff($next, true));
+      file_put_contents("/var/www/drupalvm/drupal/web/debug/film5.txt", print_r($diff , TRUE), FILE_APPEND);
+      $this->nextLoanDays = $diff->d;
+      $this->nextLoanHours = $diff->h;
+      $this->nextLoanMinutes = $diff->i;
     }
   }
 }
