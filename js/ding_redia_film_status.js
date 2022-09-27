@@ -1,12 +1,20 @@
 (function ($) {
   "use strict";
   $(document).ready(function () {
+    let barColor = '#000000';
+    let trackColor = '#F2F2F2';
+    let isEligible = Drupal.settings.dingRediaFilm.isEligible;
+    console.log(isEligible);
+    if (!isEligible) {
+      barColor = '#AD313C';
+      trackColor = '#AD313C';
+    }
     $('.redia-film-status-chart').easyPieChart({
-      barColor: "#36e617",
+      barColor: barColor,
       scaleLength: 0,
-      lineWidth: 15,
-      trackColor: "#525151",
-      lineCap: "circle",
+      lineWidth: 10,
+      trackColor: trackColor,
+      lineCap: "round",
     });
   });
 

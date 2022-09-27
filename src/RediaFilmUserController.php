@@ -18,7 +18,7 @@ class RediaFilmUserController extends RediaFilmAbstractController
   public $maxNumberOfLoans;
   public $currentLoanCount;
   public $loanDuration;
-  public $isElligble = false;
+  public $isEligible = false;
   public $loanPercentage;
 
   public $nextLoanDate;
@@ -156,7 +156,6 @@ class RediaFilmUserController extends RediaFilmAbstractController
    */
   public function getUserEligible() {
     $response = $this->client->getUserEligible($this->session_id);
-
     if ($this->hasResult($response)) {
       $data = $this->getData($response);
       $this->maxNumberOfLoans = isset($data['maxNumberOfLoans']) ? $data['maxNumberOfLoans'] : 0;
@@ -164,12 +163,13 @@ class RediaFilmUserController extends RediaFilmAbstractController
       $this->loanDuration = isset($data['loanDuration']) ? $data['loanDuration'] : 0;
       $this->nextLoanDate = isset($data['nextLoanDate']) ? date('d-m-Y', $data['nextLoanDate']) : 0;
       $this->nextLoanDateRaw = isset($data['nextLoanDate']) ?  $data['nextLoanDate'] : 0;
+       //Testcode
+      $this->maxNumberOfLoans = 2;
+      $this->currentLoanCount = 2;
       if ($this->currentLoanCount < $this->maxNumberOfLoans) {
-        $this->isElligble = true;
+        $this->isEligible = true;
       }
       file_put_contents("/var/www/drupalvm/drupal/web/debug/film4.txt", print_r($data['nextLoanDate'], TRUE), FILE_APPEND);
-      //Testcode
-      $this->maxNumberOfLoans = 2;
 
       $this->calculateNextLoanDate();
 
@@ -191,8 +191,8 @@ class RediaFilmUserController extends RediaFilmAbstractController
   private function calculateNextLoanDate()
   {
     // Debug code.
-    $this->isElligble = false;
-    if ($this->isElligble) {
+    //S$this->isEligible = false;
+    if ($this->isEligible) {
       $this->nextLoanDays = 0;
       $this->nextLoanHours = 0;
       $this->nextLoanMinutes = 0;

@@ -14,7 +14,7 @@
         </div>
         <div class="redia-film-status-max-loans"><?php print t('Out of %currentloancount', ['%currentloancount' => $user->maxNumberOfLoans]) ?></div>
     </div>
-    <?php if (!$user->isElligble) : ?>
+    <?php if (!$user->isEligible) : ?>
         <div class="redia-film-next-loan">
             <div class="redia-film-next-text">
                 <?php print t('You can lend a movie again in..') ?>
@@ -23,7 +23,7 @@
                 <div class="redia-film-next-diff">
                     <div class="redia-film-next-diff-element">
                         <div class="redia-film-next-diff-date">
-                            <?php print $user->nextLoanDays ?>
+                            <?php print sprintf('%02d', $user->nextLoanDays) ?>
                         </div>
                         <div class="redia-film-next-diff-label">
                             <?php print t('Days') ?>
@@ -31,7 +31,7 @@
                     </div>
                     <div class="redia-film-next-diff-element">
                         <div class="redia-film-next-diff-date">
-                            <?php print $user->nextLoanHours ?>
+                            <?php print sprintf('%02d', $user->nextLoanHours) ?>
                         </div>
                         <div class="redia-film-next-diff-label">
                             <?php print t('Hours') ?>
@@ -39,7 +39,7 @@
                     </div>
                     <div class="redia-film-next-diff-element">
                         <div class="redia-film-next-diff-date">
-                            <?php print $user->nextLoanMinutes ?>
+                            <?php print sprintf('%02d', $user->nextLoanMinutes) ?>
                         </div>
                         <div class="redia-film-next-diff-label">
                             <?php print t('Min') ?>

@@ -193,7 +193,7 @@ function ding_redia_film_can_user_checkout($libry_id) {
     return ajax_command_ding_popup('ding_redia_film', t('Error'), '<p>' . t('Cant get credentials') . '</p>');
   }
 
-  if ($redia_user->isElligble) {
+  if ($redia_user->isEligible) {
     return ding_redia_film_create_checkout_popup($libry_id, $redia_user);
   } else {
     return ding_redia_film_user_not_elligble_popup($redia_user);
@@ -523,6 +523,7 @@ function ding_redia_film_get_status() {
     drupal_add_js(drupal_get_path('module', 'ding_redia_film') . '/js/jquery.easypiechart.js');
     drupal_add_js(drupal_get_path('module', 'ding_redia_film') . '/js/ding_redia_film_status.js');
     file_put_contents("/var/www/drupalvm/drupal/web/debug/chart2.txt", print_r($redia_user, TRUE), FILE_APPEND);
+    drupal_add_js(['dingRediaFilm' => ['isEligible' => $redia_user->isEligible]], 'setting');
     return theme('ding_redia_film_status', ['user' => $redia_user]);
   } else {
     return '';
@@ -554,9 +555,11 @@ function ding_redia_film_get_loans() {
  * Get data on the loans from the well.
  */
 function ding_redia_film_get_loans_from_well(&$loans) {
+  $results = [];
   $query = ding_redia_film_make_well_query($loans);
-  $results = ding_redia_film_search($query, 1, 50);
-  file_put_contents("/var/www/drupalvm/drupal/web/debug/film2.txt", print_r($results, TRUE), FILE_APPEND);
+  if (!empty($query)) {
+    $results = ding_redia_film_search($query, 1, 50);
+  }
   foreach ($results as $ting_id => $object) {
     $id = $object->getLocalId();
     if (isset($loans[$id])) {

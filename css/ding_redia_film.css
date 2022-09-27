@@ -71,25 +71,81 @@
   position: relative;
   display: inline-block;
   width: 100%;
-  padding: 20px;
+  padding: 30px;
   text-align: center;
-  background-color: #f1f1f2;
+  background-color: #e5e5e5;
 }
 .redia-film-status canvas {
   position: absolute;
-  top: 40px;
+  top: 70px;
   left: 0;
   right: 0; 
   margin-left: auto; 
   margin-right: auto; 
-  width: 100px; /* Need a specific value to work */
+  width: 104px; /* Need a specific value to work */
 }
 .redia-film-status-chart {
-  display: inline-block;
-  line-height: 110px;
-  z-index: 2;
+	display: inline-block;
+	line-height: 110px;
+	font-family: FaktPro-SemiBold, sans-serif;
+	font-size: 36px;
+}
+
+.redia-film-status-max-loans {
+	margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.redia-film-status-title {
+	margin-bottom: 20px;
 }
 
 .redia-film-next-loan {
-  border-top: 1px solid rgba(38,38,38,.2)
+  border-top: 1px solid rgba(38, 38, 38, .2);
+  display: flex;
+  justify-content: space-between;
+  padding-top: 30px;
+}
+
+.redia-film-next-dates-container {
+	display: flex;
+	flex-direction: column;
+  justify-content: space-between;
+}
+
+.redia-film-next-diff {
+	display: flex;
+	justify-content: space-around;
+  margin-bottom: 10px;
+}
+
+.redia-film-next-diff-date {
+  font-family: FaktPro-SemiBold, sans-serif;
+	font-size: 24px;
+  margin-bottom: 5px;
+}
+
+.redia-film-next-date {
+  font-family: FaktPro-SemiBold, sans-serif;
+	font-size: 14px;
+	padding: 0 10px;
+  color: #808080;;
+}
+
+@media screen and (max-width: 950px) {
+  .redia-film-next-loan {
+    flex-direction: column;
+  }
+
+  .redia-film-next-text {
+    margin-bottom: 20px;
+  }
+
+  .redia-film-next-diff {
+    justify-content: center;
+  }
+
+  .redia-film-next-diff-element {
+    padding: 0 12px;
+  }
 }
