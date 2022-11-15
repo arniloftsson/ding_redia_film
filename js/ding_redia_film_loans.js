@@ -1,3 +1,8 @@
+/**!
+ * Ajax script to update the number of loans on the menu item.
+ *
+ **/
+
 (function ($) {
   "use strict";
   Drupal.behaviors.ding_redia_film = {

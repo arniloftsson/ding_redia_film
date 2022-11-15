@@ -5,7 +5,6 @@
  * Client to communicate with the Redia film service.
  */
 
-use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
 

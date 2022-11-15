@@ -32,7 +32,7 @@
         </div>
       </div>
       <div class="redia-film-loan-expire-date">
-      <div class="redia-film-loan-expire-date-label">
+        <div class="redia-film-loan-expire-date-label">
           <?php print $loan->expireDateLabel ?>
         </div>
         <div class="redia-film-loan-expire-date-text">

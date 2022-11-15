@@ -2,13 +2,13 @@
 
 /**
  * @file
- *
+ * Template for status element in loan status.
  *
  */
 ?>
 <div class="redia-film-status">
     <div class="redia-film-pie">
-        <div class="redia-film-status-title">Film</div>
+        <div class="redia-film-status-title"><?php print t('Film') ?>"</div>
         <div class="redia-film-status-chart" data-percent="<?php print $user->loanPercentage ?>" >
             <?php print $user->currentLoanCount ?>
         </div>

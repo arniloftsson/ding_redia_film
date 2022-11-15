@@ -2,14 +2,12 @@
 
 /**
  * @file
- * A loan status item.
+ * Show the film.
  *
  */
 ?>
 
-<?php // @TODO: Outer wrapper should maybe be `libry-root` as id ?>
 <div id="root">
-    <?php // @TODO: Why the inline javascript ?>
       <libry-play-movie>
         <script>
           window.addEventListener(

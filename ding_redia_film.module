@@ -171,7 +171,6 @@ function ding_redia_film_checkout_ajax($ting_object) {
  */
 function ding_redia_film_can_user_checkout($libry_id) {
   $redia_user = ding_redia_film_get_user_controller();
-  //Todo har already loaned the film.
   $token = ding_redia_film_get_user_token();
   $is_loggedin = $redia_user->login($token);
 
@@ -286,7 +285,6 @@ function ding_redia_film_watch($id) {
      unset($_SESSION['ding_redia_film_loan_count']);
   }
   elseif (!$is_checked_out && !$wants_to_checkout) {
-    // Todo go to film.
     drupal_set_message(t('You need to check the film out before watching it'));
     drupal_goto('<front>');
   }
@@ -444,7 +442,7 @@ function _ding_redia_film_get_client() {
     $logger = new RediaFilmLogger('ding_redia_film', $log_debug);
 
     $url = variable_get('ding_redia_film_server', 'https://bapps-be-staging.redia.dk/v2/');
-    $api_key = variable_get('ding_redia_film_api_key', ''); // '12481632';
+    $api_key = variable_get('ding_redia_film_api_key', '');
     $agency = 'DK-' . variable_get('ting_agency', '775100');
     $version = variable_get('ding_redia_film_version', 'ios_3.1.3');
     $language = variable_get('ding_redia_film_language', 'en');
@@ -482,7 +480,7 @@ function ding_redia_film_login_url($destination = '') {
 }
 
 /**
- * @TODO: Add description?
+ * Gets a openplatform user token. If development token is configured it returns it instead.
  *
  * @return mixed|void
  *
@@ -519,16 +517,15 @@ function _ding_redia_film_debug_log($message, array $variables = []) {
 function ding_redia_film_get_status() {
   $redia_user =  ding_redia_film_get_user_controller();
   $token = ding_redia_film_get_user_token();
-  $status = $redia_user->login($token);
-  if ($status) {
-    // Todo handle login failure.
+  $is_loggedin = $redia_user->login($token);
+  if ($is_loggedin) {
     $redia_user->getUserEligible();
     drupal_add_js(drupal_get_path('module', 'ding_redia_film') . '/js/jquery.easypiechart.js');
     drupal_add_js(drupal_get_path('module', 'ding_redia_film') . '/js/ding_redia_film_status.js');
-    file_put_contents("/var/www/drupalvm/drupal/web/debug/chart2.txt", print_r($redia_user, TRUE), FILE_APPEND);
     drupal_add_js(['dingRediaFilm' => ['isEligible' => $redia_user->isEligible]], 'setting');
     return theme('ding_redia_film_status', ['user' => $redia_user]);
   } else {
+    drupal_set_message(t('Could not log in the libry service'));
     return '';
   }
 }
@@ -538,15 +535,14 @@ function ding_redia_film_get_status() {
  */
 function ding_redia_film_get_loans() {
   $loan_items = '';
-
   $loans = ding_redia_film_get_loans_from_libry();
-  file_put_contents("/var/www/drupalvm/drupal/web/debug/film1.txt", print_r($loans, TRUE), FILE_APPEND);
+
   ding_redia_film_get_loans_from_well($loans);
   foreach ($loans as $loan) {
     $loan = ding_redia_film_prepare_loan_item($loan);
     $loan_items .= theme('ding_redia_film_loan', ['loan' => $loan]);
   }
-
+  drupal_add_js(drupal_get_path('module', 'ting_covers') . '/js/ting-covers.js');
   return $loan_items;
 }
 
@@ -556,8 +552,8 @@ function ding_redia_film_get_loans() {
 function ding_redia_film_get_loans_from_libry() {
   $redia_user =  ding_redia_film_get_user_controller();
   $token = ding_redia_film_get_user_token();
-  $success = $redia_user->login($token);
-  if (!$success ) {
+  $is_loggedin = $redia_user->login($token);
+  if (!$is_loggedin) {
     drupal_set_message(t('Could not log in the libry service'));
     return null;
   }
@@ -639,13 +635,6 @@ function ding_redia_film_search($query, $start, $size) {
  * Watch film.
  */
 function ding_redia_film_prepare_loan_item($loan) {
-  //TOdo real cover.
-  $devel_cover = variable_get('ding_redia_film_use_devel_cover', FALSE);
-  if ($devel_cover) {
-    $loan->cover = '<div  class="ting-cover" data-ting-cover-object-id="870970-basis:52181666" data-ting-cover-style="ting_search_carousel"></div>';
-    drupal_add_js(drupal_get_path('module', 'ting_covers') . '/js/ting-covers.js');
-  }
-
   $path = 'ting/object/' . $loan->tingObjectId;
   $loan->title = l($loan->title, $path);
   if (isset($loan->creators)) {

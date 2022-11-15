@@ -1,3 +1,8 @@
+/**!
+ * This script uses the easy-pie-chart lightweight plugin to make the pie chart.
+ *
+ **/
+
 (function ($) {
   "use strict";
   $(document).ready(function () {

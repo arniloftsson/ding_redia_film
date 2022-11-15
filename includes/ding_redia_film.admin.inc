@@ -67,12 +67,6 @@ function ding_redia_film_admin_form($form, &$form_state) {
     '#description' => t('User token from the openplatform'),
   ];
 
-  $form['ding_redia_film_development']['ding_redia_film_use_devel_cover'] = [
-    '#type' => 'checkbox',
-    '#title' => t('Use development cover'),
-    '#default_value' => variable_get('ding_redia_film_use_devel_cover', FALSE),
-  ];
-
   $form['revert_config'] = [
     '#type' => 'fieldset',
     '#title' => t('Revert configuration'),
