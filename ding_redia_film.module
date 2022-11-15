@@ -281,6 +281,9 @@ function ding_redia_film_watch($id) {
   // We only check out if the user has confirmed.
   if (!$is_checked_out && $wants_to_checkout) {
      $object_controller->createLoan($redia_user, $libry_object);
+
+     // We need to refresh our loancount so we unset session loan count.
+     unset($_SESSION['ding_redia_film_loan_count']);
   }
   elseif (!$is_checked_out && !$wants_to_checkout) {
     // Todo go to film.
@@ -536,11 +539,7 @@ function ding_redia_film_get_status() {
 function ding_redia_film_get_loans() {
   $loan_items = '';
 
-  $redia_user =  ding_redia_film_get_user_controller();
-  $token = ding_redia_film_get_user_token();
-  $status = $redia_user->login($token);
-  // Todo handle login failure.
-  $loans = $redia_user->getLoans();
+  $loans = ding_redia_film_get_loans_from_libry();
   file_put_contents("/var/www/drupalvm/drupal/web/debug/film1.txt", print_r($loans, TRUE), FILE_APPEND);
   ding_redia_film_get_loans_from_well($loans);
   foreach ($loans as $loan) {
@@ -549,6 +548,20 @@ function ding_redia_film_get_loans() {
   }
 
   return $loan_items;
+}
+
+/**
+ * Get users film loans get loans from the libry service.
+ */
+function ding_redia_film_get_loans_from_libry() {
+  $redia_user =  ding_redia_film_get_user_controller();
+  $token = ding_redia_film_get_user_token();
+  $success = $redia_user->login($token);
+  if (!$success ) {
+    drupal_set_message(t('Could not log in the libry service'));
+    return null;
+  }
+  return $redia_user->getLoans();
 }
 
 /**
@@ -684,7 +697,7 @@ function ding_redia_film_page_alter(&$page) {
 }
 
 /**
- * Get number off user loans.
+ * Get the number of user loans via ajax.
  */
 function ding_redia_film_check_loans_ajax() {
   $loan_count = 0;
@@ -692,22 +705,17 @@ function ding_redia_film_check_loans_ajax() {
   if (isset($_SESSION['ding_redia_film_loan_count'])) {
     $loan_count = $_SESSION['ding_redia_film_loan_count'];
   } else {
-    $redia_user =  ding_redia_film_get_user_controller();
-    $token = ding_redia_film_get_user_token();
-    $status = $redia_user->login($token);
-    if ($status) {
-      $loans = $redia_user->getLoans();
-      $loan_count = count($loans);
-      $_SESSION['ding_redia_film_loan_count'] = $loan_count;
-    }
+    $loans = ding_redia_film_get_loans_from_libry();
+    $loan_count = count($loans);
+    $_SESSION['ding_redia_film_loan_count'] = $loan_count;
   }
+
   if ($loan_count == 0) {
     drupal_json_output(null);
   } else {
     $loans = ddbasic_account_count_loans() - ddbasic_account_count_overdue_loans() + $loan_count;
     $output = '<span>' . t('Loans') . '<span class="menu-item-count">' . $loans . '</span></span>';
     drupal_json_output($output);
-
   }
 
   drupal_exit();

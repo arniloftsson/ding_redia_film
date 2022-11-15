@@ -96,7 +96,6 @@ class RediaFilmUserController extends RediaFilmAbstractController
     $libry_loans = null;
     $ids = [];
     $response = $this->client->getLoans($this->session_id);
-    file_put_contents("/var/www/drupalvm/drupal/web/debug/film3.txt", print_r($response , TRUE), FILE_APPEND);
     if ($this->hasResult($response)) {
       $loans = $this->getData($response);
       foreach ($loans as $loan) {
@@ -163,16 +162,11 @@ class RediaFilmUserController extends RediaFilmAbstractController
       $this->loanDuration = isset($data['loanDuration']) ? $data['loanDuration'] : 0;
       $this->nextLoanDate = isset($data['nextLoanDate']) ? date('d-m-Y', $data['nextLoanDate']) : 0;
       $this->nextLoanDateRaw = isset($data['nextLoanDate']) ?  $data['nextLoanDate'] : 0;
-       //Testcode
-      $this->maxNumberOfLoans = 2;
-      $this->currentLoanCount = 2;
+
       if ($this->currentLoanCount < $this->maxNumberOfLoans) {
         $this->isEligible = true;
       }
-      file_put_contents("/var/www/drupalvm/drupal/web/debug/film4.txt", print_r($data['nextLoanDate'], TRUE), FILE_APPEND);
-
       $this->calculateNextLoanDate();
-
       $this->loanPercentage = (int) ($this->currentLoanCount / $this->maxNumberOfLoans * 100);
       return true;
     }
@@ -190,20 +184,16 @@ class RediaFilmUserController extends RediaFilmAbstractController
    */
   private function calculateNextLoanDate()
   {
-    // Debug code.
-    //S$this->isEligible = false;
     if ($this->isEligible) {
       $this->nextLoanDays = 0;
       $this->nextLoanHours = 0;
       $this->nextLoanMinutes = 0;
     } else {
-      // Debug code.
-      // $next = new DateTime();
-      // $next->setTimestamp($this->nextLoanDateRaw);
-      $next = new DateTime('next thursday');
+      $next = new DateTime();
+      $next->setTimestamp($this->nextLoanDateRaw);
       $now = new DateTime();
       $diff = ($now->diff($next, true));
-      file_put_contents("/var/www/drupalvm/drupal/web/debug/film5.txt", print_r($diff , TRUE), FILE_APPEND);
+
       $this->nextLoanDays = $diff->d;
       $this->nextLoanHours = $diff->h;
       $this->nextLoanMinutes = $diff->i;
