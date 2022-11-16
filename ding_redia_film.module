@@ -279,7 +279,11 @@ function ding_redia_film_watch($id) {
 
   // We only check out if the user has confirmed.
   if (!$is_checked_out && $wants_to_checkout) {
-     $object_controller->createLoan($redia_user, $libry_object);
+    $success = $object_controller->createLoan($redia_user, $libry_object);
+    If (!$success) {
+      drupal_set_message(t('Creating a loan failed. Please contact your library'));
+      drupal_goto('<front>');
+    }
 
      // We need to refresh our loancount so we unset session loan count.
      unset($_SESSION['ding_redia_film_loan_count']);

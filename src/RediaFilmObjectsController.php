@@ -18,11 +18,19 @@ class RediaFilmObjectsController extends RediaFilmAbstractController
    *   The film service user.
    * @param RediaFilmObject $object
    *   The film to loan.
+   * @return bool $success
+   *   The loan was created or not.
    */
   public function createLoan(RediaFilmUserController $user, RediaFilmObject $object) {
     $response = $this->client->createLoan($object->id, $user->getSessionid());
-
-    // @TODO: No feedback on success or failure.
+    if ($this->hasResult($response)) {
+      $data = $this->getData($response);
+      if (isset($data) && isset($data['success']) && $data['success']) {
+        return true;
+      }
+    }
+    $this->logger->logError('Could not create the loan at the film service: %response', ['%response' => print_r($response, TRUE)]);
+    return false;
   }
 
   /**
