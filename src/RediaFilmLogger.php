@@ -17,11 +17,9 @@ class RediaFilmLogger
   /**
    * RediaFilmLogger constructor.
    *
-   * @TODO: Wrong parmeter descriptions?
-   *
    * @param string $type
    *   The type off the log message.
-   * @param bool $apikey
+   * @param bool $doLogging
    *   Do debug logging.
    */
   public function __construct($type, $doLogging = false) {
@@ -32,12 +30,13 @@ class RediaFilmLogger
   /**
    * Set the customerid
    *
-   * @TODO: Wrong parmeter descriptions?
-   *
-   * @param string $customerId
-   *   Redia specifik customerid.
+   * @param string $message
+   *   Message to log.
+   * 
+   * @param array $variables
+   *   Variables in the message.
    */
-  public function logDebug($message, $variables) {
+  public function logDebug($message, array $variables = []) {
     if ($this->doLogging) {
       watchdog($this->type, $message, $variables, WATCHDOG_DEBUG);
     }
@@ -46,10 +45,11 @@ class RediaFilmLogger
   /**
    * Set the customer id
    *
-   * @TODO: Wrong parmeter descriptions?
-   *
-   * @param string $customerId
-   *   Redia specifik customerid.
+   * @param string $message
+   *   Message to log.
+   * 
+   * @param array $variables
+   *   Variables in the message.
    */
   public function logError($message, array $variables = []) {
       watchdog($this->type, $message, $variables, WATCHDOG_ERROR);
@@ -58,10 +58,14 @@ class RediaFilmLogger
   /**
    * Set the customerid
    *
-   * @TODO: Wrong parmeter descriptions?
+   * @param Exception $exception
+   *   The exception thrown.
    *
-   * @param string $customerId
-   *   Redia specifik customerid.
+   * @param string $message
+   *   Message to log.
+   * 
+   * @param array $variables
+   *   Variables in the message.
    */
   public function logException(\Exception $exception, $message = null, array $variables = []) {
       watchdog_exception($this->type, $exception, $message, $variables, WATCHDOG_ERROR);

@@ -13,8 +13,6 @@ function ding_redia_film_install() {
     ding_redia_film_add_site_template_config();
     ding_redia_film_add_film_loan_panes();
   } catch (Exception $e) {
-    // @TODO: Maybe output that something has gone wrong. So the admin make the
-    //        install knows to check logs.
     watchdog_exception('ding_redia_film', $e);
   }
 }
@@ -23,11 +21,15 @@ function ding_redia_film_install() {
  /**
   * Implements hook_uninstall().
   *
-  * @TODO: What about the panels changes added during install?
-  * @TODO: All the configuration variables?
   */
 function ding_redia_film_uninstall() {
   // Unset variables.
   variable_del('ding_redia_film_enable_logging');
+  variable_del('ding_redia_film_server');
+  variable_del('ding_redia_film_api_key');
+  variable_del('ding_redia_film_version');
+  variable_del('ding_redia_film_language');
+  variable_del('ding_redia_film_acsource');
+  variable_del('ding_redia_film_use_devel_token');
 }
 

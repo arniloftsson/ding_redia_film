@@ -114,14 +114,11 @@ class RediaFilmObjectsController extends RediaFilmAbstractController
   /**
    * Gets the token from the service in order to watch the film. The user must be logged in.
    *
-   * @TODO: Wrong parmeter description?
-   * @param string $session_id
-   *   The session id.
+   * @param RediaFilmUserController $user
+   *   The RediaFilmUserController to use.
    *
    * @return string|null $token
    *   The session id from the service or null if there is a error.
-   *
-   * @TODO handle errors
    */
   public function getToken(RediaFilmUserController $user) {
     $token = null;

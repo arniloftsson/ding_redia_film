@@ -21,6 +21,7 @@ class RediaFilmRequest
   private $version;
   private $language;
   private $customerId = '';
+  private $status_message;
 
   /**
    * RediaFilmRequest constructor.
@@ -85,7 +86,7 @@ class RediaFilmRequest
   }
 
   /**
-   * @TODO: Missing description.
+   * Set the customerId.
    *
    * @param $customerId
    *
@@ -96,7 +97,7 @@ class RediaFilmRequest
   }
 
   /**
-   * @TODO: Missing description.
+   * Get the customerId.
    *
    * @return string
    */

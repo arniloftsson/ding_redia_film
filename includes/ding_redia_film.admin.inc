@@ -39,6 +39,13 @@ function ding_redia_film_admin_form($form, &$form_state) {
     '#default_value' => variable_get('ding_redia_film_language', 'en'),
   ];
 
+  $form['ding_redia_film_acsource'] = [
+    '#type' => 'textfield',
+    '#title' => t('Film service acsource'),
+    '#description' => t('Film service acsource in the well'),
+    '#default_value' => variable_get('ding_redia_film_acsource', 'Bibliotekernes filmtjeneste'),
+  ];
+
   $form['ding_redia_film_enable_logging'] = [
     '#type' => 'checkbox',
     '#title' => t('Enable logging'),

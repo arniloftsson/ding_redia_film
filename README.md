@@ -3,8 +3,6 @@
 This module gives access to the Libry film service. It takes full control af a
 page and renders its own react components.
 
-// @TODO: Could this not be done using features or via hook_install or features alter hooks?
-
 In order for this to work we use the search-blank variant off at site template.
 This needs to be configured on install. Go to structure -> pages. Choose default
 site template. Choose search-blank variant. There goto "udvalgsregler".

@@ -117,11 +117,6 @@ function ding_redia_film_ctools_plugin_directory($module, $plugin) {
 /**
  * Watch film.
  *
- * @param $ting_object
- *   TODO: Missing this is true for almost all functions.
- *
- * @return array
- *   TODO: Missing this is true for almost all functions.
  */
 function ding_redia_film_checkout_ajax($ting_object) {
   $commands = [];
@@ -155,7 +150,6 @@ function ding_redia_film_checkout_ajax($ting_object) {
     catch (Exception $exception) {
       // The form may have thrown an auth exception as the login may have
       // timed-out.
-      // TODO check this (the checkout link will be triggered on success).
       $commands[] = ajax_command_ding_popup('ding_redia_film', t('Error'), '<p>' . t('Unknown error in trying to watch film, please contact the library.') . '</p>');
 
       // Log exception.
@@ -314,7 +308,7 @@ function ding_redia_film_watch_trailer($id) {
   if (isset($libry_object->trailers)) {
     foreach ($libry_object->trailers as $trailer) {
       if ($trailer['format'] == 'MPEG4') {
-        //Todo are there other formats?
+        //TODO are there other formats?
         $trailers[] = [
           'source' => $trailer['watchUrl'],
           'format' => 'video/mp4',
@@ -401,7 +395,8 @@ function ding_redia_film_field_attach_view_alter(&$output, $context) {
  * Checks if object is a Libry film.
  */
 function ding_redia_film_is_libry_film($entity) {
-  return $entity->getAc_source() == 'Libry films';
+  $acsource = variable_get('ding_redia_film_acsource', 'Bibliotekernes filmtjeneste');
+  return $entity->getAc_source() == $acsource;
 }
 
 /**
@@ -807,7 +802,6 @@ function ding_redia_film_add_film_loan_panes() {
 /**
  * Definition off the film loan and status panes.
  *
- * @TODO: we not use feature module to define these panels?
  */
 function ding_redia_film_loan_panes() {
   $panes = [];
