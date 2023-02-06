@@ -32,7 +32,7 @@ class RediaFilmLogger
    *
    * @param string $message
    *   Message to log.
-   * 
+   *
    * @param array $variables
    *   Variables in the message.
    */
@@ -47,7 +47,7 @@ class RediaFilmLogger
    *
    * @param string $message
    *   Message to log.
-   * 
+   *
    * @param array $variables
    *   Variables in the message.
    */
@@ -63,7 +63,7 @@ class RediaFilmLogger
    *
    * @param string $message
    *   Message to log.
-   * 
+   *
    * @param array $variables
    *   Variables in the message.
    */
