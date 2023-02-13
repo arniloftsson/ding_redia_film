@@ -12,7 +12,7 @@ function ding_redia_film_menu() {
   $items = [];
 
   $items['admin/config/ding/ding_redia_film'] = [
-    'title' => 'Libry Film Settings',
+    'title' => 'Redia Film Settings',
     'description' => 'Manage ding redia film module',
     'page callback' => 'drupal_get_form',
     'page arguments' => ['ding_redia_film_admin_form'],
@@ -21,30 +21,30 @@ function ding_redia_film_menu() {
     'type' => MENU_NORMAL_ITEM,
   ];
 
-  $items['film/libry/watch/%'] = [
-    'title' => 'Libry Film watch',
+  $items['film/redia/watch/%'] = [
+    'title' => 'Redia Film watch',
     'page callback' => 'ding_redia_film_watch',
     'page arguments' => [3],
     'access arguments' => ['access content'],
   ];
 
-  $items['film/libry/watchtrailer/%'] = [
-    'title' => 'Libry Film watch trailer',
+  $items['film/redia/watchtrailer/%'] = [
+    'title' => 'Redia Film watch trailer',
     'page callback' => 'ding_redia_film_watch_trailer',
     'page arguments' => [3],
     'access arguments' => ['access content'],
     'delivery callback' => 'ajax_deliver',
   ];
 
-  $items['film/libry/checkout/%ting_object'] = [
+  $items['film/redia/checkout/%ting_object'] = [
     'page callback' => 'ding_redia_film_checkout_ajax',
     'page arguments' => [3],
     'delivery callback' => 'ajax_deliver',
     'access arguments' => ['access content'],
   ];
 
-  $items['film/libry/loans'] = [
-    'title' => 'Libry Film get loans',
+  $items['film/redia/loans'] = [
+    'title' => 'Redia Film get loans',
     'page callback' => 'ding_redia_film_check_loans_ajax',
     'access arguments' => ['access content'],
   ];
@@ -174,7 +174,7 @@ function ding_redia_film_can_user_checkout($libry_id) {
 
   $is_checked_out = $redia_user->isCheckedOut($libry_id);
   if ($is_checked_out) {
-    $url = url('film/libry/watch/' . $libry_id);
+    $url = url('film/redia/watch/' . $libry_id);
     $text = t('Your film is ready to watch. You will be redirected to the film in few seconds');
     $html = '<div id="js-redia-film-checked-out" data-film-url="' . $url . '">' . $text . '</div>';
 
@@ -223,7 +223,7 @@ function ding_redia_film_create_checkout_popup($libry_id , $redia_user) {
   $checkout_yes_button = t('Yes');
   $checkout_cancel_button = t('Cancel');
 
-  $watch_link = '/film/libry/watch/' . $libry_id;
+  $watch_link = '/film/redia/watch/' . $libry_id;
   $options = ['query' => ['wantsToCheckout' => true]];
   $url = url($watch_link, $options);
 
@@ -331,7 +331,7 @@ function ding_redia_film_ding_entity_buttons($type, $entity, $view_mode, $widget
     $watch_button = [
       '#theme' => 'link',
       '#text' => t('Watch film'),
-      '#path' => 'film/libry/checkout/' . $entity->id,
+      '#path' => 'film/redia/checkout/' . $entity->id,
       '#options' => [
         'attributes' => [
           'class' => [
@@ -359,7 +359,7 @@ function ding_redia_film_ding_entity_buttons($type, $entity, $view_mode, $widget
     if (ding_redia_film_has_trailer($entity->getLocalId())) {
       $trailer_button = $watch_button;
       $trailer_button['#text'] = t('Watch trailer');
-      $trailer_button['#path'] = 'film/libry/watchtrailer/' . $entity->getLocalId();
+      $trailer_button['#path'] = 'film/redia/watchtrailer/' . $entity->getLocalId();
       $trailer_button['#options']['attributes']['class'] = [
         'action-button',
         'watch-trailer-button',
@@ -392,7 +392,7 @@ function ding_redia_film_field_attach_view_alter(&$output, $context) {
 }
 
 /**
- * Checks if object is a Libry film.
+ * Checks if object is a Redia film.
  */
 function ding_redia_film_is_libry_film($entity) {
   $acsource = variable_get('ding_redia_film_acsource', 'Bibliotekernes filmtjeneste');
@@ -648,7 +648,7 @@ function ding_redia_film_prepare_loan_item($loan) {
   $watchButton = [
     '#theme' => 'link',
     '#text' => t('Keep watching'),
-    '#path' => 'film/libry/watch/' . $loan->id,
+    '#path' => 'film/redia/watch/' . $loan->id,
     '#options' => [
       'attributes' => [
         'class' => [
@@ -678,7 +678,7 @@ function ding_redia_film_page_alter(&$page) {
     drupal_add_js(drupal_get_path('module', 'ding_redia_film') . '/js/ding_redia_film_loans.js');
     drupal_add_js([
       'dingRediaFilm' => [
-        'url' => '/film/libry/loans',
+        'url' => '/film/redia/loans',
       ],
     ], 'setting');
   }
@@ -731,8 +731,8 @@ function ding_redia_film_add_site_template_config() {
           $paths = trim($paths);
           $path_strings = explode("\n", $paths);
 
-          if (!in_array('film/libry/watch/*', $path_strings)) {
-            $paths .= "\nfilm/libry/watch/*";
+          if (!in_array('film/redia/watch/*', $path_strings)) {
+            $paths .= "\nfilm/redia/watch/*";
           }
 
           $access['plugins'][0]['settings']['paths'] = $paths;

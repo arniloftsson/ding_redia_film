@@ -6,7 +6,7 @@
  */
 $plugin = array(
   'title' => t('User film status'),
-  'description' => t('The current loan status off a user in the Libry Film service'),
+  'description' => t('The current loan status off a user in the Redia Film service'),
   'single' => TRUE,
   'content_types' => array('list'),
   'required context' => new ctools_context_required(t('User'), 'user'),

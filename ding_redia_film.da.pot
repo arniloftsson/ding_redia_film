@@ -79,7 +79,7 @@ msgid "The ding_redia_film module is missing its configuration"
 msgstr ""
 
 #: ding_redia_film.module:16
-msgid "Libry Film Settings"
+msgid "Redia Film Settings"
 msgstr ""
 
 #: ding_redia_film.module:17
@@ -87,11 +87,11 @@ msgid "Manage ding redia film module"
 msgstr ""
 
 #: ding_redia_film.module:26
-msgid "Libry Film watch"
+msgid "Redia Film watch"
 msgstr ""
 
 #: ding_redia_film.module:33
-msgid "Libry Film watch trailer"
+msgid "Redia Film watch trailer"
 msgstr ""
 
 #: ding_redia_film.info:0
@@ -175,11 +175,11 @@ msgid "Reverts the configuration after a update off DDBCMS has overridden them. 
 msgstr ""
 
 #: includes/ding_redia_film.admin.inc:98
-msgid "Libry film configuration reverted"
+msgid "Redia film configuration reverted"
 msgstr ""
 
 #: includes/ding_redia_film.admin.inc:101
-msgid "Failed to revert Libry film configuration"
+msgid "Failed to revert Redia film configuration"
 msgstr ""
 
 #: plugins/content_types/libryloans.inc:8
@@ -203,7 +203,7 @@ msgid "User film status"
 msgstr ""
 
 #: plugins/content_types/librystatus.inc:9
-msgid "The current loan status off a user in the Libry Film service"
+msgid "The current loan status off a user in the Redia Film service"
 msgstr ""
 
 #: plugins/content_types/librystatus.inc:24

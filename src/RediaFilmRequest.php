@@ -27,7 +27,7 @@ class RediaFilmRequest
    * RediaFilmRequest constructor.
    *
    * @param string $url
-   *   The service endpoint for the Libry film service.
+   *   The service endpoint for the Redia film service.
    * @param string $apikey
    *   The apikey to login with.
    * @param RediaFilmLogger $logger
@@ -262,13 +262,13 @@ class RediaFilmRequest
         $options['cookies'] = $cookieJar;
       }
 
-      $this->logger->logDebug('Call options to libry service: %options', ['%options' => json_encode($options)]);
+      $this->logger->logDebug('Call options to redia service: %options', ['%options' => json_encode($options)]);
 
       $response = $client->post($this->url, $options);
       $content = $response->getBody()->getContents();
       $decoded_response = json_decode($content, true);
 
-      $this->logger->logDebug('Response from libry service: %json', ['%json' => $content]);
+      $this->logger->logDebug('Response from redia service: %json', ['%json' => $content]);
     } catch (Exception $e) {
       $this->logger->logException($e);
     }

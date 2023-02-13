@@ -96,9 +96,9 @@ function ding_redia_film_revert_configuration($form, &$form_state) {
   try {
     ding_redia_film_add_site_template_config();
     ding_redia_film_add_film_loan_panes();
-    drupal_set_message(t('Libry film configuration reverted'));
+    drupal_set_message(t('Redia film configuration reverted'));
   } catch (Exception $e) {
-    drupal_set_message(t('Failed to revert Libry film configuration'));
+    drupal_set_message(t('Failed to revert Redia film configuration'));
     watchdog_exception('ding_redia_film', $e);
   }
 }
