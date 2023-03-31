@@ -49,6 +49,13 @@ function ding_redia_film_menu() {
     'access arguments' => ['access content'],
   ];
 
+  $items['film/redia/setbookmark/%/%'] = [
+    'title' => 'Sets bookmark for the film',
+    'page arguments' => [3,4],
+    'page callback' => 'ding_redia_film_set_bookmark',
+    'access arguments' => ['access content'],
+  ];
+
   return $items;
 }
 
@@ -288,6 +295,10 @@ function ding_redia_film_watch($id) {
   }
 
   $libry_object->token = $object_controller->getToken($redia_user);
+
+  //Todo devel code
+  $libry_object->bookmarkId = $libry_object->id;
+  $libry_object->offset = $object_controller->getBookmark($redia_user, $libry_object);
 
   // In order to facilitate full screen view mode.
   drupal_add_http_header('Feature-Policy', 'fullscreen "self" https://play.libry.dk');
@@ -706,6 +717,20 @@ function ding_redia_film_check_loans_ajax() {
     drupal_json_output($output);
   }
 
+  drupal_exit();
+}
+
+/**
+ * Get the number of user loans via ajax.
+ */
+function ding_redia_film_set_bookmark($bookmarkid, $offset) {
+  $token = ding_redia_film_get_user_token();
+  $redia_user = ding_redia_film_get_user_controller();
+  $object_controller = ding_redia_film_get_object_controller();
+
+  $logged_in = $redia_user->login($token);
+  $object_controller->setBookmark($redia_user, $bookmarkid, (int) $offset);
+  //file_put_contents("/var/www/drupalvm/drupal/web/debug/film3.txt", print_r($bookmarkid . " " . $offset . "\n", TRUE), FILE_APPEND);
   drupal_exit();
 }
 

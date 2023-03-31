@@ -229,6 +229,48 @@ class RediaFilmRequest
   }
 
   /**
+   * Gets the bookmarks from the film service.
+   *
+   * @param string $session_id
+   *   The session id.
+   *
+   * @return array
+   *   The response from the service or null if there is a error.
+   */
+  public function getBookmarks($session_id) {
+    $params = [];
+
+    $params[] = $this->apikey;
+    $params[] = $this->version;
+    $params[] = $this->language;
+    $params[] = $this->customerId;
+
+    return $this->filmServiceRequest('watch.getBookmarks', $params, $session_id);
+  }
+
+    /**
+   * Sets bookmark the film service.
+   *
+   * @param string $bookmark_id
+   *   The bookmark id.
+   *
+   * @param int $offset
+   *   Offset in seconds.
+   */
+  public function setBookmark($bookmark_id, $offset, $session_id = null) {
+    $params = [];
+
+    $params[] = $this->apikey;
+    $params[] = $this->version;
+    $params[] = $this->language;
+    $params[] = $this->customerId;
+    $params[] = $bookmark_id;
+    $params[] = $offset;
+
+    return $this->filmServiceRequest('watch.setBookmark', $params, $session_id);
+  }
+
+  /**
    * Make request to the film service
    *
    * @param string $method

@@ -1,7 +1,7 @@
 # ding_redia_film
 
 This module gives access to the Redia film service. It takes full control af a
-page and renders its own react components.S
+page and renders its own react components.
 
 In order for this to work we use the search-blank variant off at site template.
 This needs to be configured on install. Go to structure -> pages. Choose default
