@@ -158,17 +158,16 @@ class RediaFilmObjectsController extends RediaFilmAbstractController
   }
 
     /**
-   * Is there a bookmark for the film.
+   * Set a bookmark for the film.
    *
    * @param string $identifier
    *   The identifier for the film.
    *
-   * @return int $offset
+   * @param int $offset
    *   A offset for the film else 0.
    */
   public function setBookmark(RediaFilmUserController $user, $bookmarkId, $offset) {
     $bookmarks =  $this->client->setBookmark($bookmarkId, $offset, $user->getSessionid());
     //file_put_contents("/var/www/drupalvm/drupal/web/debug/film5.txt", print_r($bookmarks, TRUE), FILE_APPEND);
-    return 0;
   }
 }

@@ -721,7 +721,7 @@ function ding_redia_film_check_loans_ajax() {
 }
 
 /**
- * Get the number of user loans via ajax.
+ * Ajax call to set a bookmark in the film service.
  */
 function ding_redia_film_set_bookmark($bookmarkid, $offset) {
   $token = ding_redia_film_get_user_token();
