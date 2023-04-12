@@ -699,6 +699,22 @@ function ding_redia_film_page_alter(&$page) {
  * Get the number of user loans via ajax.
  */
 function ding_redia_film_check_loans_ajax() {
+  $loan_count = ding_redia_film_get_number_of_loans();
+
+  if ($loan_count == 0) {
+    drupal_json_output(null);
+  } else {
+    $output = '<span>' . t('Digital loans') . '<span class="menu-item-count">' . $loan_count. '</span></span>';
+    drupal_json_output($output);
+  }
+
+  drupal_exit();
+}
+
+/**
+ * Get the number of film loans.
+ */
+function ding_redia_film_get_number_of_loans() {
   $loan_count = 0;
 
   if (isset($_SESSION['ding_redia_film_loan_count'])) {
@@ -708,16 +724,7 @@ function ding_redia_film_check_loans_ajax() {
     $loan_count = count($loans);
     $_SESSION['ding_redia_film_loan_count'] = $loan_count;
   }
-
-  if ($loan_count == 0) {
-    drupal_json_output(null);
-  } else {
-    $loans = ddbasic_account_count_loans() - ddbasic_account_count_overdue_loans() + $loan_count;
-    $output = '<span>' . t('Digital loans') . '<span class="menu-item-count">' . $loans . '</span></span>';
-    drupal_json_output($output);
-  }
-
-  drupal_exit();
+  return $loan_count;
 }
 
 /**
@@ -732,6 +739,40 @@ function ding_redia_film_set_bookmark($bookmarkid, $offset) {
   $object_controller->setBookmark($redia_user, $bookmarkid, (int) $offset);
   //file_put_contents("/var/www/drupalvm/drupal/web/debug/film3.txt", print_r($bookmarkid . " " . $offset . "\n", TRUE), FILE_APPEND);
   drupal_exit();
+}
+
+/**
+ * Add a element with digital loans to user overview page.
+*/
+function template_preprocess_item_list(&$variables) {
+  if ($variables['items'] && $variables['items']['list_loans']) {
+    $loan_count  = ding_redia_film_get_number_of_loans();
+    $digital_loans = [
+      'data' =>
+      '<a href="' . url('/user/me/status-digital-loans', array('fragment' => 'anchor-digital-loans')) . '" class="signature-label"><span class="icon"></span>' . t('Digital loans') . '</a>' . '<span class="label">' . $loan_count . '</span>',
+      'class' => ['loan'],
+    ];
+    $variables['items'] = ding_redia_film_add_between($variables['items'], 'list_depts', 'list_digital_loans', $digital_loans);
+  }
+}
+
+/**
+ * Helper function to add element at a specific place in a associative array.
+ *
+ * From https://www.delftstack.com/howto/php/php-add-to-associative-array/?utm_content=cmp-true
+ */
+function ding_redia_film_add_between($original_array, $before_key, $new_key, $new_value) {
+  $added_array = [];
+  $added_key = false;
+
+  foreach ($original_array as $key => $value) {
+    if (!$added_key && $key === $before_key) {
+      $added_array[$new_key] = $new_value;
+      $added_key = true;
+    }
+    $added_array[$key] = $value;
+  }
+  return $added_array;
 }
 
 /**
@@ -778,112 +819,112 @@ function ding_redia_film_add_site_template_config() {
 /**
  * Add film loan and status panes.
  */
-function ding_redia_film_add_film_loan_panes() {
-  // There is no hook we can use, so we interact directly with ctools module.
-  if (module_exists('ctools')) {
-    // Add our panels to user loan page.
-    ctools_get_plugins('page_manager', 'task_handlers', 'panel_context');
+// function ding_redia_film_add_film_loan_panes() {
+//   // There is no hook we can use, so we interact directly with ctools module.
+//   if (module_exists('ctools')) {
+//     // Add our panels to user loan page.
+//     ctools_get_plugins('page_manager', 'task_handlers', 'panel_context');
 
-    $page = page_manager_get_page_cache('page');
-    if (isset($page->handlers['page_user_loans_panel_context'])) {
-      $handler = $page->handlers['page_user_loans_panel_context'];
-    } else {
-      // If we can't find the handler that means the configuration is in the code and
-      // not in the database. So we need to find in a different way.
-      // We need to call this so the page_manager_page_load_all() works.
-      page_manager_get_task('page');
-      $subtasks = page_manager_page_load_all();
-      if (isset($subtasks['user_loans'])) {
-        $loans_subtask = $subtasks['user_loans'];
-        $handler = $loans_subtask->default_handlers['page_user_loans_panel_context'];
-        // We have to save the subtask because it is not in the database already.
-        page_manager_page_save($subtasks['user_loans']);
-      }
-    }
+//     $page = page_manager_get_page_cache('page');
+//     if (isset($page->handlers['page_user_loans_panel_context'])) {
+//       $handler = $page->handlers['page_user_loans_panel_context'];
+//     } else {
+//       // If we can't find the handler that means the configuration is in the code and
+//       // not in the database. So we need to find in a different way.
+//       // We need to call this so the page_manager_page_load_all() works.
+//       page_manager_get_task('page');
+//       $subtasks = page_manager_page_load_all();
+//       if (isset($subtasks['user_loans'])) {
+//         $loans_subtask = $subtasks['user_loans'];
+//         $handler = $loans_subtask->default_handlers['page_user_loans_panel_context'];
+//         // We have to save the subtask because it is not in the database already.
+//         page_manager_page_save($subtasks['user_loans']);
+//       }
+//     }
 
-    $display = panels_panel_context_get_display($handler);
-    $panes = ding_redia_film_loan_panes();
-    $libry_loans_found = false;
-    $libry_status_found = false;
-    foreach ($display->content as $pane) {
-      // Ckeck if the panes are already there.
-      if ($pane->type == 'libryloans') {
-        $libry_loans_found = true;
-      }
-      if ($pane->type == 'librystatus') {
-        $libry_status_found = true;
-      }
-    }
-    if (!$libry_loans_found) {
-      $display->add_pane($panes['film_loans']);
-    }
-    if (!$libry_status_found) {
-      $display->add_pane($panes['film_status']);
-    }
-    panels_save_display($display);
-  }
-}
+//     $display = panels_panel_context_get_display($handler);
+//     $panes = ding_redia_film_loan_panes();
+//     $libry_loans_found = false;
+//     $libry_status_found = false;
+//     foreach ($display->content as $pane) {
+//       // Ckeck if the panes are already there.
+//       if ($pane->type == 'libryloans') {
+//         $libry_loans_found = true;
+//       }
+//       if ($pane->type == 'librystatus') {
+//         $libry_status_found = true;
+//       }
+//     }
+//     if (!$libry_loans_found) {
+//       $display->add_pane($panes['film_loans']);
+//     }
+//     if (!$libry_status_found) {
+//       $display->add_pane($panes['film_status']);
+//     }
+//     panels_save_display($display);
+//   }
+// }
 
 /**
  * Definition off the film loan and status panes.
  *
  */
-function ding_redia_film_loan_panes() {
-  $panes = [];
-  $pane = new stdClass();
-  $pane->uuid = ctools_uuid_generate();
-  $pane->pid = 'new-' . $pane->uuid;
-  $pane->panel = 'main_content';
-  $pane->type = 'libryloans';
-  $pane->subtype = 'libryloans';
-  $pane->shown = TRUE;
-  $pane->access = [];
-  $pane->configuration = [
-    'context' => 'argument_entity_id:user_1',
-    'override_title' => 0,
-    'override_title_text' => '',
-    'override_title_heading' => 'h2',
-  ];
-  $pane->cache = [];
-  $pane->style = [
-    'settings' => NULL,
-  ];
-  $pane->css = [
-    'css_id' => '',
-    'css_class' => 'default-account-panel-layout',
-  ];
-  $pane->extras = [];
-  $pane->position = 1;
-  $pane->locks = '';
+// function ding_redia_film_loan_panes() {
+//   $panes = [];
+//   $pane = new stdClass();
+//   $pane->uuid = ctools_uuid_generate();
+//   $pane->pid = 'new-' . $pane->uuid;
+//   $pane->panel = 'main_content';
+//   $pane->type = 'libryloans';
+//   $pane->subtype = 'libryloans';
+//   $pane->shown = TRUE;
+//   $pane->access = [];
+//   $pane->configuration = [
+//     'context' => 'argument_entity_id:user_1',
+//     'override_title' => 0,
+//     'override_title_text' => '',
+//     'override_title_heading' => 'h2',
+//   ];
+//   $pane->cache = [];
+//   $pane->style = [
+//     'settings' => NULL,
+//   ];
+//   $pane->css = [
+//     'css_id' => '',
+//     'css_class' => 'default-account-panel-layout',
+//   ];
+//   $pane->extras = [];
+//   $pane->position = 1;
+//   $pane->locks = '';
 
-  $panes['film_loans'] = $pane;
+//   $panes['film_loans'] = $pane;
 
-  $pane = new stdClass();
-  $pane->uuid = ctools_uuid_generate();
-  $pane->pid = 'new-' . $pane->uuid;
-  $pane->panel = 'main_content';
-  $pane->type = 'librystatus';
-  $pane->subtype = 'librystatus';
-  $pane->shown = TRUE;
-  $pane->access = [];
-  $pane->configuration = [
-    'context' => 'argument_entity_id:user_1',
-    'override_title' => 0,
-    'override_title_text' => '',
-    'override_title_heading' => 'h2',
-  ];
-  $pane->cache = [];
-  $pane->style = [
-    'settings' => NULL,
-  ];
-  $pane->css = [
-    'css_id' => '',
-    'css_class' => 'default-account-panel-layout',
-  ];
-  $pane->extras = [];
-  $pane->position = 2;
-  $pane->locks = '';
+//   $pane = new stdClass();
+//   $pane->uuid = ctools_uuid_generate();
+//   $pane->pid = 'new-' . $pane->uuid;
+//   $pane->panel = 'main_content';
+//   $pane->type = 'librystatus';
+//   $pane->subtype = 'librystatus';
+//   $pane->shown = TRUE;
+//   $pane->access = [];
+//   $pane->configuration = [
+//     'context' => 'argument_entity_id:user_1',
+//     'override_title' => 0,
+//     'override_title_text' => '',
+//     'override_title_heading' => 'h2',
+//   ];
+//   $pane->cache = [];
+//   $pane->style = [
+//     'settings' => NULL,
+//   ];
+//   $pane->css = [
+//     'css_id' => '',
+//     'css_class' => 'default-account-panel-layout',
+//   ];
+//   $pane->extras = [];
+//   $pane->position = 2;
+//   $pane->locks = '';
 
-  $panes['film_status'] = $pane;
-  return $panes;
-}
+//   $panes['film_status'] = $pane;
+//   return $panes;
+// }
