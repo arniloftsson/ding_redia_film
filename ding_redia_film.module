@@ -713,7 +713,7 @@ function ding_redia_film_check_loans_ajax() {
     drupal_json_output(null);
   } else {
     $loans = ddbasic_account_count_loans() - ddbasic_account_count_overdue_loans() + $loan_count;
-    $output = '<span>' . t('Loans') . '<span class="menu-item-count">' . $loans . '</span></span>';
+    $output = '<span>' . t('Digital loans') . '<span class="menu-item-count">' . $loans . '</span></span>';
     drupal_json_output($output);
   }
 

@@ -12,7 +12,7 @@
         $.getJSON(url, function (data) {
           if (data !== null) {
             $('ul.main-menu-third-level li a.menu-item').each(function (element) {
-              if ($(this).attr('href') == '/user/me/status-loans') {
+              if ($(this).attr('href') == '/user/me/status-digital-loans') {
                 $(this).html(data);
               }
             });

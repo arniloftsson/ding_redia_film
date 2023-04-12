@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Ding digital loan feature.
+ */
+
+include_once 'ding_digital_loan.features.inc';
