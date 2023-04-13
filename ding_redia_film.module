@@ -745,7 +745,7 @@ function ding_redia_film_set_bookmark($bookmarkid, $offset) {
  * Add a element with digital loans to user overview page.
 */
 function template_preprocess_item_list(&$variables) {
-  if ($variables['items'] && $variables['items']['list_loans']) {
+  if (isset($variables['items']) && isset($variables['items']['list_loans'])) {
     $loan_count  = ding_redia_film_get_number_of_loans();
     $digital_loans = [
       'data' =>
