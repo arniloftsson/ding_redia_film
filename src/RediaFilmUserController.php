@@ -96,7 +96,7 @@ class RediaFilmUserController extends RediaFilmAbstractController
     $libry_loans = null;
     $ids = [];
     $response = $this->client->getLoans($this->session_id);
-    file_put_contents("/var/www/drupalvm/drupal/web/debug/film2.txt", print_r($response, TRUE), FILE_APPEND);
+    //file_put_contents("/var/www/drupalvm/drupal/web/debug/film2.txt", print_r($response, TRUE), FILE_APPEND);
     if ($this->hasResult($response)) {
       $loans = $this->getData($response);
       foreach ($loans as $loan) {
