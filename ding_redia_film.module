@@ -703,6 +703,7 @@ function ding_redia_film_page_alter(&$page) {
     ], 'setting');
     $user_token = ding_redia_film_get_user_token();
     $cached_response = cache_get('film-user-eligible-' . $user_token);
+    file_put_contents("/var/www/drupalvm/drupal/web/debug/cache23.txt", print_r($cached_response, TRUE), FILE_APPEND);
     if (!$cached_response) {
       drupal_add_js(drupal_get_path('module', 'ding_redia_film') . '/js/ding_redia_film_user_eligible.js');
       drupal_add_js([
@@ -776,10 +777,15 @@ function ding_redia_film_check_loans_ajax() {
  * Get the user eligible and cache them via ajax.
  */
 function ding_redia_film_check_user_eligible() {
-  $redia_user =  ding_redia_film_get_user_controller();
   $token = ding_redia_film_get_user_token();
-  $redia_user->login($token);
-  $redia_user->getUserEligible();
+  $cached_response = cache_get('film-user-eligible-' . $token);
+  file_put_contents("/var/www/drupalvm/drupal/web/debug/cache24.txt", print_r($cached_response, TRUE), FILE_APPEND);
+  if (!$cached_response) {
+    $redia_user =  ding_redia_film_get_user_controller();
+    $redia_user->login($token);
+    $redia_user->getUserEligible();
+  }
+
   drupal_json_output(null);
   drupal_exit();
 }
