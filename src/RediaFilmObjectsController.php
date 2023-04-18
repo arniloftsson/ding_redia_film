@@ -22,6 +22,7 @@ class RediaFilmObjectsController extends RediaFilmAbstractController
    *   The loan was created or not.
    */
   public function createLoan(RediaFilmUserController $user, RediaFilmObject $object) {
+    file_put_contents("/var/www/drupalvm/drupal/web/debug/cache9.txt", print_r($object, TRUE), FILE_APPEND);
     $response = $this->client->createLoan($object->id, $user->getSessionid());
     if ($this->hasResult($response)) {
       $data = $this->getData($response);
@@ -69,23 +70,37 @@ class RediaFilmObjectsController extends RediaFilmAbstractController
     * @return array $libry_objects
     *   The objects from the service.
     */
-  public function getObjects(array $identifiers) {
-    $libry_objects = [];
-    $response = $this->client->getObject($identifiers);
-    if ($this->hasResult($response)) {
-      $data = $this->getData($response);
-      foreach ($data as $key => $object) {
-        if (isset($object['data'])) {
-          $libry_objects[$key] = $this->createObject($object['data']);
+    public function getObjects(array $identifiers) {
+      file_put_contents("/var/www/drupalvm/drupal/web/debug/cache1.txt", print_r($identifiers, TRUE), FILE_APPEND);
+      $ids_from_service = [];
+      $libry_objects = [];
+      foreach ($identifiers as $id) {
+        $cached_object = cache_get('film-object-' . $id);
+        file_put_contents("/var/www/drupalvm/drupal/web/debug/cache2.txt", print_r($cached_object, TRUE), FILE_APPEND);
+        file_put_contents("/var/www/drupalvm/drupal/web/debug/cache12.txt", print_r($_SESSION, TRUE), FILE_APPEND);
+        if ($cached_object !== false ) {
+          $libry_objects[$id] = $this->createObject(json_decode($cached_object->data, true));
+        } else {
+          $ids_from_service[] = $id;
         }
       }
+      file_put_contents("/var/www/drupalvm/drupal/web/debug/cache3.txt", print_r($ids_from_service, TRUE), FILE_APPEND);
+      $response = $this->client->getObject($ids_from_service);
+      if ($this->hasResult($response)) {
+        $data = $this->getData($response);
+        foreach ($data as $key => $object) {
+          if (isset($object['data'])) {
+            $libry_objects[$key] = $this->createObject($object['data']);
+            cache_set('film-object-' . $key, json_encode($object['data']), 'cache', 604800);
+          }
+        }
+      }
+      else {
+        $this->logger->logError('Could not get the objects from the film service: %response', ['%response' => print_r($response, TRUE)]);
+      }
+      file_put_contents("/var/www/drupalvm/drupal/web/debug/cache4.txt", print_r($libry_objects, TRUE), FILE_APPEND);
+      return $libry_objects;
     }
-    else {
-      $this->logger->logError('Could not get the objects from the film service: %response', ['%response' => print_r($response, TRUE)]);
-    }
-
-    return $libry_objects;
-  }
 
    /**
     * Creates a RediaFilmObject.

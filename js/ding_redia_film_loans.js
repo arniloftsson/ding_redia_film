@@ -7,7 +7,7 @@
   "use strict";
   Drupal.behaviors.ding_redia_film = {
     attach: function (context) {
-      $('ul.main-menu-third-level').once('redia-film-loan-count', function() {
+      $('ul.main-menu-third-level').once('header', function() {
         var url = Drupal.settings.dingRediaFilm.url;
         $.getJSON(url, function (data) {
           if (data !== null) {

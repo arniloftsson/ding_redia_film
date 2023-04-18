@@ -95,9 +95,20 @@ class RediaFilmUserController extends RediaFilmAbstractController
   public function getLoans($getObjects = true) {
     $libry_loans = null;
     $ids = [];
-    $response = $this->client->getLoans($this->session_id);
-    //file_put_contents("/var/www/drupalvm/drupal/web/debug/film2.txt", print_r($response, TRUE), FILE_APPEND);
+
+    $user_token = ding_redia_film_get_user_token();
+    $cached_response = cache_get('film-user-loans-' . $user_token);
+    file_put_contents("/var/www/drupalvm/drupal/web/debug/cache17.txt", print_r($cached_response, TRUE), FILE_APPEND);
+    if (!$cached_response) {
+      $response = $this->client->getLoans($this->session_id);
+      file_put_contents("/var/www/drupalvm/drupal/web/debug/cache16.txt", print_r($response, TRUE), FILE_APPEND);
+    } else {
+      $response = json_decode($cached_response->data, true);
+      file_put_contents("/var/www/drupalvm/drupal/web/debug/cache15.txt", print_r($response, TRUE), FILE_APPEND);
+    }
+
     if ($this->hasResult($response)) {
+      cache_set('film-user-loans-' . $user_token, json_encode($response), 'cache', 3600);
       $loans = $this->getData($response);
       foreach ($loans as $loan) {
         if (isset($loan['identifier'])) {
@@ -155,7 +166,17 @@ class RediaFilmUserController extends RediaFilmAbstractController
    *   If the user is eligible to loan a film.
    */
   public function getUserEligible() {
-    $response = $this->client->getUserEligible($this->session_id);
+    $user_token = ding_redia_film_get_user_token();
+    $cached_response = cache_get('film-user-eligible-' . $user_token);
+    file_put_contents("/var/www/drupalvm/drupal/web/debug/cache7.txt", print_r($cached_response, TRUE), FILE_APPEND);
+    if (!$cached_response) {
+      $response = $this->client->getUserEligible($this->session_id);
+      file_put_contents("/var/www/drupalvm/drupal/web/debug/cache6.txt", print_r($response, TRUE), FILE_APPEND);
+    } else {
+      $response = json_decode($cached_response->data, true);
+      file_put_contents("/var/www/drupalvm/drupal/web/debug/cache5.txt", print_r($response, TRUE), FILE_APPEND);
+    }
+
     if ($this->hasResult($response)) {
       $data = $this->getData($response);
       $this->maxNumberOfLoans = isset($data['maxNumberOfLoans']) ? $data['maxNumberOfLoans'] : 0;
@@ -169,6 +190,7 @@ class RediaFilmUserController extends RediaFilmAbstractController
       }
       $this->calculateNextLoanDate();
       $this->loanPercentage = (int) ($this->currentLoanCount / $this->maxNumberOfLoans * 100);
+      cache_set('film-user-eligible-' . $user_token, json_encode($response), 'cache', 3600);
       return true;
     }
     else {

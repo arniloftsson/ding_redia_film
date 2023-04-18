@@ -49,6 +49,12 @@ function ding_redia_film_menu() {
     'access arguments' => ['access content'],
   ];
 
+  $items['film/redia/usereligible'] = [
+    'title' => 'Redia Film check user eligible',
+    'page callback' => 'ding_redia_film_check_user_eligible',
+    'access arguments' => ['access content'],
+  ];
+
   $items['film/redia/setbookmark/%/%'] = [
     'title' => 'Sets bookmark for the film',
     'page arguments' => [3,4],
@@ -288,6 +294,8 @@ function ding_redia_film_watch($id) {
 
      // We need to refresh our loancount so we unset session loan count.
      unset($_SESSION['ding_redia_film_loan_count']);
+     cache_clear_all('film-user-loans-' . $token, 'cache');
+     cache_clear_all('film-user-eligible-' . $token, 'cache');
   }
   elseif (!$is_checked_out && !$wants_to_checkout) {
     drupal_set_message(t('You need to check the film out before watching it'));
@@ -693,6 +701,16 @@ function ding_redia_film_page_alter(&$page) {
         'url' => '/film/redia/loans',
       ],
     ], 'setting');
+    $user_token = ding_redia_film_get_user_token();
+    $cached_response = cache_get('film-user-eligible-' . $user_token);
+    if (!$cached_response) {
+      drupal_add_js(drupal_get_path('module', 'ding_redia_film') . '/js/ding_redia_film_user_eligible.js');
+      drupal_add_js([
+        'dingRediaFilm' => [
+          'userEligibleUrl' => '/film/redia/usereligible',
+        ],
+      ], 'setting');
+    }
   }
   $path = current_path();
   if (substr($path, 0, 11) === "search/ting") {
@@ -755,15 +773,30 @@ function ding_redia_film_check_loans_ajax() {
 }
 
 /**
+ * Get the user eligible and cache them via ajax.
+ */
+function ding_redia_film_check_user_eligible() {
+  $redia_user =  ding_redia_film_get_user_controller();
+  $token = ding_redia_film_get_user_token();
+  $redia_user->login($token);
+  $redia_user->getUserEligible();
+  drupal_json_output(null);
+  drupal_exit();
+}
+
+/**
  * Get the number of film loans.
  */
 function ding_redia_film_get_number_of_loans() {
   $loan_count = 0;
-
-  if (isset($_SESSION['ding_redia_film_loan_count'])) {
+  $user_token = ding_redia_film_get_user_token();
+  $cached_response = cache_get('film-user-loans-' . $user_token);
+  if (isset($_SESSION['ding_redia_film_loan_count']) && $cached_response !== false) {
     $loan_count = $_SESSION['ding_redia_film_loan_count'];
   } else {
     $loans = ding_redia_film_get_loans_from_libry();
+    file_put_contents("/var/www/drupalvm/drupal/web/debug/cache21.txt", print_r("Ramt", TRUE), FILE_APPEND);
+    file_put_contents("/var/www/drupalvm/drupal/web/debug/cache20.txt", print_r($loans, TRUE), FILE_APPEND);
     $loan_count = count($loans);
     $_SESSION['ding_redia_film_loan_count'] = $loan_count;
   }
