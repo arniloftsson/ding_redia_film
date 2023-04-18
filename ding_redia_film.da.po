@@ -1,0 +1,314 @@
+# $Id$
+#
+# Danish translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  ding_redia_film.module: n/a
+#  ding_redia_film.info: n/a
+#  features/ding_digital_loan/ding_digital_loan.info: n/a
+#  includes/ding_redia_film.admin.inc: n/a
+#  plugins/content_types/libryloans.inc: n/a
+#  plugins/content_types/librystatus.inc: n/a
+#  templates/ding-redia-film-status.tpl.php: n/a
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2023-04-18 14:09+0200\n"
+"PO-Revision-Date: 2023-04-18 14:09+0200\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Danish <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: ding_redia_film.module:146;150;166;185;199;221
+msgid "Error"
+msgstr "Fejl"
+
+#: ding_redia_film.module:146
+msgid "Only library user can watch films."
+msgstr "Kun lånere på biblioteket kan se film"
+
+#: ding_redia_film.module:150
+msgid "Only residents in the municipal user can watch films."
+msgstr "Kun lånere som er bosat i kommunen kan låne film"
+
+#: ding_redia_film.module:166
+msgid "Unknown error in trying to watch film, please contact the library."
+msgstr "Ukendt fejl i visning af film, kontakt dit bibliotek"
+
+#: ding_redia_film.module:185
+msgid "Cant log in to the film service."
+msgstr "Kan ikke logge ind til film servicen"
+
+#: ding_redia_film.module:191
+msgid "Your film is ready to watch. You will be redirected to the film in few seconds"
+msgstr "Din film er klar til visning. Den starter om få sekunder"
+
+#: ding_redia_film.module:194;253;353
+msgid "Watch film"
+msgstr "Se film"
+
+#: ding_redia_film.module:199
+msgid "Cant get credentials"
+msgstr "Får ikke låndata fra film servicen"
+
+#: ding_redia_film.module:219
+msgid "You cant loan the film. You have used %used_loans loans out of %number_of_loans loans within %period days. Next date you can loan is %next_loan_date"
+msgstr "Du kan ikke låne filmen. Du har brugt %used_loans lån ud af %number_of_loans inden for %period days. Næste dato du kan låne film er %next_loan_date"
+
+#: ding_redia_film.module:228
+msgid "Do you want to loan the film for 2 days"
+msgstr "Ønsker du at låne filmen for 2 dage"
+
+#: ding_redia_film.module:235
+msgid "If you loan the film you have used %used_loans loans out of %number_of_loans loans within %period days"
+msgstr "Hvis du låner filmen har du brugt %used_loans lån ud af %number_of_loans indenfor %period days"
+
+#: ding_redia_film.module:236
+msgid "Yes"
+msgstr "Ja"
+
+#: ding_redia_film.module:237
+msgid "Cancel"
+msgstr "Annullér"
+
+#: ding_redia_film.module:274
+msgid "Couldn't log into the film service. Please try again later or contact your library"
+msgstr "Kan ikke logge ind til film servicen. Prøv igen senere eller kontakt dit bibliotek"
+
+#: ding_redia_film.module:291
+msgid "Creating a loan failed. Please contact your library"
+msgstr "Oprettelse af lån fejlede. Kontakt dit bibliotek"
+
+#: ding_redia_film.module:301
+msgid "You need to check the film out before watching it"
+msgstr "Det er nødvendigt at låne filmen før du kan se den"
+
+#: ding_redia_film.module:381
+msgid "Watch trailer"
+msgstr "Se trailer"
+
+#: ding_redia_film.module:405
+msgid "See online"
+msgstr "Se online"
+
+#: ding_redia_film.module:547;576
+msgid "Could not log in the libry service"
+msgstr "Kunne ikke logge ind i film servicen"
+
+#: ding_redia_film.module:665
+msgid "Film-net"
+msgstr "Film-net"
+
+#: ding_redia_film.module:666
+msgid "Loan date:"
+msgstr "Lånedato"
+
+#: ding_redia_film.module:667
+msgid "Expires:"
+msgstr "Udløbet"
+
+#: ding_redia_film.module:670
+msgid "Keep watching"
+msgstr "Bliv ved med at se"
+
+#: ding_redia_film.module:769;834
+msgid "Digital loans"
+msgstr "Digitale lån"
+
+#: ding_redia_film.module:481
+msgid "ding_redia_film"
+msgstr "ding_redia_film"
+
+#: ding_redia_film.module:481
+msgid "The ding_redia_film module is missing its configuration"
+msgstr "Film modulet mangler konfiguration"
+
+#: ding_redia_film.module:15
+msgid "Redia Film Settings"
+msgstr "Film service settings"
+
+#: ding_redia_film.module:16
+msgid "Manage ding redia film module"
+msgstr "Håndter ding redia film modulet"
+
+#: ding_redia_film.module:25
+msgid "Redia Film watch"
+msgstr "Redia film visning"
+
+#: ding_redia_film.module:32
+msgid "Redia Film watch trailer"
+msgstr "Redia film visning af trailer"
+
+#: ding_redia_film.module:47
+msgid "Redia Film get loans"
+msgstr "Redia film hent lån"
+
+#: ding_redia_film.module:53
+msgid "Redia Film check user eligible"
+msgstr "Redia film check om bruger kan låne"
+
+#: ding_redia_film.module:59
+msgid "Sets bookmark for the film"
+msgstr "Sæt et bookmark for filmen"
+
+#: ding_redia_film.info:0
+msgid "Ding Redia Film"
+msgstr "Ding Redia Film"
+
+#: ding_redia_film.info:0
+msgid "Add Redia film to site"
+msgstr "Tilføj Redia film til siden"
+
+#: ding_redia_film.info:0 features/ding_digital_loan/ding_digital_loan.info:0
+msgid "Ding!"
+msgstr "Ding!"
+
+#: features/ding_digital_loan/ding_digital_loan.info:0
+msgid "Ding digital loan"
+msgstr "Ding digital loan"
+
+#: features/ding_digital_loan/ding_digital_loan.info:0
+msgid "A feature for the digital loan page"
+msgstr "A feature for the digital loan page"
+
+#: includes/ding_redia_film.admin.inc:16
+msgid "Film service server"
+msgstr "Film service server"
+
+#: includes/ding_redia_film.admin.inc:17
+msgid "Url off the film service server. Eg. !server"
+msgstr "Url for film service serveren. Eg. !server"
+
+#: includes/ding_redia_film.admin.inc:23
+msgid "Film service server api key"
+msgstr "Film service server api key"
+
+#: includes/ding_redia_film.admin.inc:24
+msgid "Api key off the film service server"
+msgstr "Api key off the film service server"
+
+#: includes/ding_redia_film.admin.inc:30
+msgid "Film service server version"
+msgstr "Film service server version"
+
+#: includes/ding_redia_film.admin.inc:31
+msgid "Version key off the film service server. E.g ios_3.1.3"
+msgstr "Version key off the film service server. E.g ios_3.1.3"
+
+#: includes/ding_redia_film.admin.inc:37
+msgid "Film service server language"
+msgstr "Film service server language"
+
+#: includes/ding_redia_film.admin.inc:38
+msgid "Language off the film service server. Either \"en\" or \"da\""
+msgstr "Language off the film service server. Either \"en\" or \"da\""
+
+#: includes/ding_redia_film.admin.inc:44
+msgid "Film service acsource"
+msgstr "Film service acsource"
+
+#: includes/ding_redia_film.admin.inc:45
+msgid "Film service acsource in the well"
+msgstr "Film service acsource in the well"
+
+#: includes/ding_redia_film.admin.inc:51
+msgid "Enable logging"
+msgstr "Aktivér logging."
+
+#: includes/ding_redia_film.admin.inc:57
+msgid "Development settings"
+msgstr "Development settings"
+
+#: includes/ding_redia_film.admin.inc:58
+msgid "A token to use instead of the token you get when logging in to the openplatform."
+msgstr "A token to use instead of the token you get when logging in to the openplatform."
+
+#: includes/ding_redia_film.admin.inc:65
+msgid "Use development token"
+msgstr "Use development token"
+
+#: includes/ding_redia_film.admin.inc:72
+msgid "Agency token"
+msgstr "Agency token"
+
+#: includes/ding_redia_film.admin.inc:74
+msgid "User token from the openplatform"
+msgstr "User token from the openplatform"
+
+#: includes/ding_redia_film.admin.inc:79;84
+msgid "Revert configuration"
+msgstr "Revert configuration"
+
+#: includes/ding_redia_film.admin.inc:80
+msgid "Reverts the configuration after a update off DDBCMS has overridden them. Needs to be done every time DDBCMS is updated"
+msgstr "Reverts the configuration after a update off DDBCMS has overridden them. Needs to be done every time DDBCMS is updated"
+
+#: includes/ding_redia_film.admin.inc:99
+msgid "Redia film configuration reverted"
+msgstr "Redia film configuration reverted"
+
+#: includes/ding_redia_film.admin.inc:101
+msgid "Failed to revert Redia film configuration"
+msgstr "Failed to revert Redia film configuration"
+
+#: plugins/content_types/libryloans.inc:8
+msgid "User film loan list"
+msgstr "Bruger film lån liste"
+
+#: plugins/content_types/libryloans.inc:9
+msgid "The current libry film service loans for a user"
+msgstr "De aktuelle film service lån for brugeren"
+
+#: plugins/content_types/libryloans.inc:12;13 plugins/content_types/librystatus.inc:12;13
+msgid "User"
+msgstr "Bruger"
+
+#: plugins/content_types/libryloans.inc:24
+msgid "Film loan list"
+msgstr "Film lån"
+
+#: plugins/content_types/librystatus.inc:8
+msgid "User film status"
+msgstr "Film status"
+
+#: plugins/content_types/librystatus.inc:9
+msgid "The current loan status off a user in the Redia Film service"
+msgstr "Den aktuelle status for lån af film for brugeren"
+
+#: plugins/content_types/librystatus.inc:24
+msgid "Film Status"
+msgstr "Film Status"
+
+#: templates/ding-redia-film-status.tpl.php:11
+msgid "Film"
+msgstr "Film"
+
+#: templates/ding-redia-film-status.tpl.php:11
+msgid "Film loan"
+msgstr "Film lån"
+
+#: templates/ding-redia-film-status.tpl.php:15
+msgid "Out of %currentloancount"
+msgstr "Ud af %currentloancount"
+
+#: templates/ding-redia-film-status.tpl.php:20
+msgid "You can lend a movie again in.."
+msgstr "Du kan lån en film igen.."
+
+#: templates/ding-redia-film-status.tpl.php:29
+msgid "Days"
+msgstr "Dage"
+
+#: templates/ding-redia-film-status.tpl.php:37
+msgid "Hours"
+msgstr "Timer"
+
+#: templates/ding-redia-film-status.tpl.php:45
+msgid "Min"
+msgstr "Min"
+
