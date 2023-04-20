@@ -11,17 +11,28 @@
 class RediaFilmObject
 {
   public $id;
-  public $bookmarkId;
   public $cover;
   public $creators;
-  public $info;
   public $offset;
   public $tingObjectId;
   public $title;
-  public $token;
-  public $trailers;
 
   public $expireDate;
   public $loanDate;
   public $progress;
+}
+
+/**
+ * Class RediaFilmWatchObject.
+ */
+class RediaFilmWatchObject
+{
+  public $bookmarkId;
+  public $hasTrailer = false;
+  public $id;
+  public $info;
+  public $offset;
+  public $title;
+  public $token;
+  public $trailers;
 }

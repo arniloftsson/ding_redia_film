@@ -97,7 +97,7 @@ msgid "See online"
 msgstr "Se online"
 
 #: ding_redia_film.module:547;576
-msgid "Could not log in the libry service"
+msgid "Could not log in the film service"
 msgstr "Kunne ikke logge ind i film servicen"
 
 #: ding_redia_film.module:665
@@ -114,7 +114,7 @@ msgstr "Udløbet"
 
 #: ding_redia_film.module:670
 msgid "Keep watching"
-msgstr "Bliv ved med at se"
+msgstr "Se videre"
 
 #: ding_redia_film.module:769;834
 msgid "Digital loans"

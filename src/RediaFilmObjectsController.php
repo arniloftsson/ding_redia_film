@@ -21,8 +21,7 @@ class RediaFilmObjectsController extends RediaFilmAbstractController
    * @return bool $success
    *   The loan was created or not.
    */
-  public function createLoan(RediaFilmUserController $user, RediaFilmObject $object) {
-    file_put_contents("/var/www/drupalvm/drupal/web/debug/cache9.txt", print_r($object, TRUE), FILE_APPEND);
+  public function createLoan(RediaFilmUserController $user, RediaFilmWatchObject $object) {
     $response = $this->client->createLoan($object->id, $user->getSessionid());
     if ($this->hasResult($response)) {
       $data = $this->getData($response);
@@ -41,7 +40,7 @@ class RediaFilmObjectsController extends RediaFilmAbstractController
    *   The identifier off the object.
    */
   public function hasTrailer($identifier) {
-    $libry_object = $this->getObject($identifier);
+    $libry_object = $this->getProduct($identifier);
 
     return isset($libry_object->trailers) && !empty($libry_object->trailers);
   }
@@ -102,6 +101,34 @@ class RediaFilmObjectsController extends RediaFilmAbstractController
       return $libry_objects;
     }
 
+  /**
+    * Gets at film product from the service.
+    *
+    * @param string $identifier
+    *   The identifier off the object.
+    *
+    * @return RediaFilmWatchObject | false
+    *   The objects from the service or false if not a valid response.
+    */
+    public function getProduct($identifier) {
+      $response = $this->client->getProduct($identifier);
+      if ($this->hasResult($response)) {
+        $data = $this->getData($response);
+        $watch_object = new RediaFilmWatchObject();
+        $watch_object->id = $identifier;
+        $watch_object->info = $data;
+        if (isset($data['media']) && isset($data['media']['trailers']) && $data['media']['trailers']) {
+          $watch_object->trailers = $data['media']['trailers'];
+          $watch_object->hasTrailer = true;
+        }
+        file_put_contents("/var/www/drupalvm/drupal/web/debug/prod1.txt", print_r($data, TRUE), FILE_APPEND);
+        return $watch_object;
+      } else {
+        $this->logger->logError('Could not get the product from the film service: %response', ['%response' => print_r($response, TRUE)]);
+        return false;
+      }
+    }
+
    /**
     * Creates a RediaFilmObject.
     *
@@ -117,11 +144,6 @@ class RediaFilmObjectsController extends RediaFilmAbstractController
       $libry_object->tingObjectId = isset($item_data['faust']) ? $item_data['faust'] : null;
       $libry_object->title = isset($item_data['originalTitle']) ? $item_data['originalTitle'] : null;
       $libry_object->creators = isset($item_data['creators']) ? $item_data['creators'] : null;
-      $libry_object->info = $item_data;
-
-      if (isset($item_data['media']) && isset($item_data['media']['trailers'])) {
-        $libry_object->trailers = $item_data['media']['trailers'];
-      }
 
       return $libry_object;
     }
@@ -157,7 +179,7 @@ class RediaFilmObjectsController extends RediaFilmAbstractController
    * @return int $offset
    *   A offset for the film else 0.
    */
-  public function getBookmark(RediaFilmUserController $user, RediaFilmObject $object) {
+  public function getBookmark(RediaFilmUserController $user, RediaFilmWatchObject $object) {
     $response = $this->client->getBookmarks($user->getSessionid());
     //file_put_contents("/var/www/drupalvm/drupal/web/debug/film1.txt", print_r($response, TRUE), FILE_APPEND);
     if ($this->hasResult($response)) {

@@ -92,72 +92,57 @@ class RediaFilmUserController extends RediaFilmAbstractController
    *   The user's loans from the service or empty array if none. Null if the
    *   request fails.
    */
-  public function getLoans($getObjects = true) {
-    $libry_loans = null;
+  public function getLoans() {
+    $libry_loans = [];
     $ids = [];
 
-    $user_token = ding_redia_film_get_user_token();
-    $cached_response = cache_get('film-user-loans-' . $user_token);
-    file_put_contents("/var/www/drupalvm/drupal/web/debug/cache17.txt", print_r($cached_response, TRUE), FILE_APPEND);
-    if (!$cached_response) {
-      $response = $this->client->getLoans($this->session_id);
-      file_put_contents("/var/www/drupalvm/drupal/web/debug/cache16.txt", print_r($response, TRUE), FILE_APPEND);
-    } else {
-      $response = json_decode($cached_response->data, true);
-      file_put_contents("/var/www/drupalvm/drupal/web/debug/cache15.txt", print_r($response, TRUE), FILE_APPEND);
-    }
-
+    $response = $this->client->getLoans($this->session_id);
     if ($this->hasResult($response)) {
-      cache_set('film-user-loans-' . $user_token, json_encode($response), 'cache', 3600);
+      
       $loans = $this->getData($response);
       foreach ($loans as $loan) {
         if (isset($loan['identifier'])) {
           $ids[] = $loan['identifier'];
         }
       }
-      if (!$getObjects) {
-        // We only want the ids.
-        return $ids;
-      }
-      $objects = new RediaFilmObjectsController($this->client);
-      $libry_loans = $objects->getObjects($ids);
-
+      file_put_contents("/var/www/drupalvm/drupal/web/debug/loans3.txt", print_r($loans, TRUE), FILE_APPEND);
       foreach ($loans as $loan) {
-        if (isset($loan['identifier']) && isset($libry_loans[$loan['identifier']])) {
-          $id = $loan['identifier'];
-          $libry_loans[$id]->loanDate = isset($loan['loanDate']) ? date('d-m-Y', $loan['loanDate']) : '';
-          $libry_loans[$id]->expireDate = isset($loan['expireDate']) ? date('d-m-Y', $loan['expireDate']) : '';
-          $libry_loans[$id]->progress = isset($loan['progress']) ? $loan['progress'] : 0;
-        }
+        $libry_object = new RediaFilmObject();
+        $id = $loan['identifier'];
+        $libry_object->id = $id;
+        $libry_object->loanDate = isset($loan['loanDate']) ? date('d-m-Y', $loan['loanDate']) : '';
+        $libry_object->expireDate = isset($loan['expireDate']) ? date('d-m-Y', $loan['expireDate']) : '';
+        $libry_object->progress = isset($loan['progress']) ? $loan['progress'] : 0;
+        $libry_loans[$id] = $libry_object;
       }
     }
     else {
       $this->status_message = 'Could not get the loans for the user from film service';
       $this->logger->logError('Could not get the loans for the user from film service: %response', ['%response' => print_r($response, TRUE)]);
     }
-
+    file_put_contents("/var/www/drupalvm/drupal/web/debug/loans2.txt", print_r($libry_loans, TRUE), FILE_APPEND);
     return $libry_loans;
   }
 
-  /**
-   * Has the user already checked out the film.
-   *
-   * @param string $id
-   *   The token from the user login to the adgangsplatform.
-   *
-   * @return bool $isCheckout
-   *   Is the film checked out.
-   */
-  public function isCheckedOut($id) {
-    $libry_loans = $this->getLoans(false);
-    foreach ($libry_loans as $loans) {
-      if ($loans == $id) {
-        return true;
-      }
-    }
+  // /**
+  //  * Has the user already checked out the film.
+  //  *
+  //  * @param string $id
+  //  *   The token from the user login to the adgangsplatform.
+  //  *
+  //  * @return bool $isCheckout
+  //  *   Is the film checked out.
+  //  */
+  // public function isCheckedOut($id) {
+  //   $libry_loans = $this->getLoans(false);
+  //   foreach ($libry_loans as $loans) {
+  //     if ($loans == $id) {
+  //       return true;
+  //     }
+  //   }
 
-    return false;
-  }
+  //   return false;
+  // }
 
  /**
    * Gets the user's eligibility from the service. The user must be logged in.
@@ -166,17 +151,7 @@ class RediaFilmUserController extends RediaFilmAbstractController
    *   If the user is eligible to loan a film.
    */
   public function getUserEligible() {
-    $user_token = ding_redia_film_get_user_token();
-    $cached_response = cache_get('film-user-eligible-' . $user_token);
-    file_put_contents("/var/www/drupalvm/drupal/web/debug/cache7.txt", print_r($cached_response, TRUE), FILE_APPEND);
-    if (!$cached_response) {
-      $response = $this->client->getUserEligible($this->session_id);
-      file_put_contents("/var/www/drupalvm/drupal/web/debug/cache6.txt", print_r($response, TRUE), FILE_APPEND);
-    } else {
-      $response = json_decode($cached_response->data, true);
-      file_put_contents("/var/www/drupalvm/drupal/web/debug/cache5.txt", print_r($response, TRUE), FILE_APPEND);
-    }
-
+    $response = $this->client->getUserEligible($this->session_id);
     if ($this->hasResult($response)) {
       $data = $this->getData($response);
       $this->maxNumberOfLoans = isset($data['maxNumberOfLoans']) ? $data['maxNumberOfLoans'] : 0;
@@ -190,8 +165,7 @@ class RediaFilmUserController extends RediaFilmAbstractController
       }
       $this->calculateNextLoanDate();
       $this->loanPercentage = (int) ($this->currentLoanCount / $this->maxNumberOfLoans * 100);
-      cache_set('film-user-eligible-' . $user_token, json_encode($response), 'cache', 3600);
-      return true;
+      return $this;
     }
     else {
       $this->status_message = 'Could not check the users status from the from film service';
@@ -205,8 +179,7 @@ class RediaFilmUserController extends RediaFilmAbstractController
    * Calculate the difference to nextloandate
    *
    */
-  private function calculateNextLoanDate()
-  {
+  private function calculateNextLoanDate() {
     if ($this->isEligible) {
       $this->nextLoanDays = 0;
       $this->nextLoanHours = 0;

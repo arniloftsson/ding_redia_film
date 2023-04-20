@@ -144,6 +144,27 @@ class RediaFilmRequest
     return $this->filmServiceRequest('watch.getObjects', $params);
   }
 
+    /**
+    * Gets at product object from the service.
+    *
+    * @param string $identifier
+    *   The identifiers off the product.
+    *
+    * @return array $response
+    *   The response from the film service.
+    */
+    public function getProduct($identifier) {
+      $params = [];
+  
+      $params[] = $this->apikey;
+      $params[] = $this->version;
+      $params[] = $this->language;
+      $params[] = $this->customerId;
+      $params[] = $identifier;
+  
+      return $this->filmServiceRequest('watch.getProduct', $params);
+    }
+
   /**
    * Creates a loan at the service. The user must be logged in.
    *
