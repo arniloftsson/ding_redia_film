@@ -34,10 +34,16 @@
   padding-left: 0px;
 }
 
+.redia-film-object-title h2 {
+  margin-bottom: 10px;
+  margin-top: 3px;
+}
+
 .redia-film-object-content {
   width: 47%;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
 }
 
 .redia-film-object-actions {
@@ -47,6 +53,28 @@
 .redia-film-object-actions .watch-button {
   background-color: #000;
   color: #fff;
+}
+
+@media screen and (max-width: 950px) {
+  .redia-film-object-actions .watch-button {
+    width: 100%;
+  }
+  .redia-film-object-cover {
+    display: none;
+  }
+
+  .redia-film-object-actions {
+    width: 30%;
+  }
+
+  .redia-film-object-content {
+    width: 67%;
+  }
+
+  .material-item.redia-film-item {
+    padding-right: 0px;
+    padding-left: 0px;
+  }
 }
 
 .redia-film-loan-status {

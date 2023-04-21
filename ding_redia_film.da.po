@@ -106,11 +106,11 @@ msgstr "Film-net"
 
 #: ding_redia_film.module:666
 msgid "Loan date:"
-msgstr "Lånedato"
+msgstr "Udlånsdato"
 
 #: ding_redia_film.module:667
 msgid "Expires:"
-msgstr "Udløbet"
+msgstr "Udløber"
 
 #: ding_redia_film.module:670
 msgid "Keep watching"

@@ -14,13 +14,15 @@
 
   <div class="redia-film-object-content">
     <div class="redia-film-all-object-type">
-      <?php print $loan->type ?>
-    </div>
-    <div class="redia-film-object-title">
-      <h2><?php print $loan->title ?></h2>
-    </div>
-    <div class="redia-film-object-creator">
-      <?php print $loan->creators ?>
+      <div class="redia-film-all-object-type">
+        <?php print $loan->type ?>
+      </div>
+      <div class="redia-film-object-title">
+        <h2><?php print $loan->title ?></h2>
+      </div>
+      <div class="redia-film-object-creator">
+        <?php print $loan->creators ?>
+      </div>
     </div>
     <div class="redia-film-loan-status">
       <div class="redia-film-loan-status-date">
