@@ -8,7 +8,7 @@
 ?>
 <div class="redia-film-status">
     <div class="redia-film-pie">
-        <div class="redia-film-status-title"><?php print t('Film loan') ?>"</div>
+        <div class="redia-film-status-title"><?php print t('Film loan') ?></div>
         <div class="redia-film-status-chart" data-percent="<?php print $user->loanPercentage ?>" >
             <?php print $user->currentLoanCount ?>
         </div>
