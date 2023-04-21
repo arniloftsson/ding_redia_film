@@ -119,8 +119,8 @@ class RediaFilmUserController extends RediaFilmAbstractController
         $libry_object = new RediaFilmObject();
         $id = $loan['identifier'];
         $libry_object->id = $id;
-        $libry_object->loanDate = isset($loan['loanDate']) ? date('d-m-Y', $loan['loanDate']) : '';
-        $libry_object->expireDate = isset($loan['expireDate']) ? date('d-m-Y', $loan['expireDate']) : '';
+        $libry_object->loanDate = isset($loan['loanDate']) ? format_date($loan['loanDate'], 'ding_material_lists_date') : '';
+        $libry_object->expireDate = isset($loan['expireDate']) ? format_date($loan['expireDate'], 'ding_material_lists_date') : '';
         $libry_object->progress = isset($loan['progress']) ? $loan['progress'] : 0;
         $libry_loans[$id] = $libry_object;
       }
