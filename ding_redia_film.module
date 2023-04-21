@@ -178,10 +178,8 @@ function ding_redia_film_checkout_ajax($ting_object) {
  */
 function ding_redia_film_can_user_checkout($libry_id) {
   $redia_user = ding_redia_film_get_user_controller();
-  $token = ding_redia_film_get_user_token();
-  $is_loggedin = $redia_user->login($token);
 
-  if (!$is_loggedin) {
+  if (!$redia_user->isLoggedin()) {
     return ajax_command_ding_popup('ding_redia_film', t('Error'), '<p>' . t('Cant log in to the film service.') . '</p>');
   }
 
@@ -194,8 +192,8 @@ function ding_redia_film_can_user_checkout($libry_id) {
     return ajax_command_ding_popup('ding_redia_film', t('Watch film'), $html);
   }
 
-  $user_status = $redia_user->getUserEligible();
-  if (!$user_status) {
+  $redia_user = ding_redia_film_get_user_eligible();
+  if (!$redia_user) {
     return ajax_command_ding_popup('ding_redia_film', t('Error'), '<p>' . t('Cant get credentials') . '</p>');
   }
 
@@ -269,8 +267,7 @@ function ding_redia_film_watch($id) {
   $redia_user = ding_redia_film_get_user_controller();
   $object_controller = ding_redia_film_get_object_controller();
 
-  $logged_in = $redia_user->login($token);
-  If (!$logged_in) {
+  If (!$redia_user->isLoggedin()) {
     drupal_set_message(t('Couldn\'t log into the film service. Please try again later or contact your library'));
     drupal_goto('<front>');
   }
@@ -283,7 +280,6 @@ function ding_redia_film_watch($id) {
 
   $libry_object = ding_redia_film_get_watch_object($id);
   $is_checked_out = ding_redia_film_is_checked_out($id);
-  file_put_contents("/var/www/drupalvm/drupal/web/debug/watch1.txt", print_r($libry_object, TRUE), FILE_APPEND);
   // We only check out if the user has confirmed.
   if (!$is_checked_out && $wants_to_checkout) {
     $success = $object_controller->createLoan($redia_user, $libry_object);
@@ -305,8 +301,12 @@ function ding_redia_film_watch($id) {
   $libry_object->token = $object_controller->getToken($redia_user);
 
   //Todo devel code
-  $libry_object->bookmarkId = $libry_object->id;
-  $libry_object->offset = $object_controller->getBookmark($redia_user, $libry_object);
+  if ($is_checked_out) {
+    $libry_object->bookmarkId = $libry_object->id;
+    $libry_object->offset = $object_controller->getBookmark($redia_user, $libry_object);
+  } else {
+    $libry_object->offset = 0;
+  }
 
   // In order to facilitate full screen view mode.
   drupal_add_http_header('Feature-Policy', 'fullscreen "self" https://play.libry.dk');
@@ -449,7 +449,21 @@ function ding_redia_film_get_object_controller() {
  */
 function ding_redia_film_get_user_controller() {
   $client = _ding_redia_film_get_client();
-  return new RediaFilmUserController($client);
+  $user_controller = new RediaFilmUserController($client);
+  $token = ding_redia_film_get_user_token();
+  $cached_response = cache_get('film-user-login-' . $token);
+  if (!$cached_response) {
+    $user_controller->login($token);
+    if (!$user_controller->isLoggedin()) {
+      watchdog('ding_redia_film', 'Cant log in to the redia film service', NULL, WATCHDOG_ERROR);
+      return null;
+    }
+    cache_set('film-user-login-' . $token, $user_controller->getSessionid() , 'cache', REQUEST_TIME + 600);
+  } else {
+    $login = $cached_response->data;
+    $user_controller->setSessionid($login);
+  }
+  return $user_controller;
 }
 
 /**
@@ -540,7 +554,6 @@ function _ding_redia_film_debug_log($message, array $variables = []) {
  */
 function ding_redia_film_has_trailer($id) {
   $watch_object = ding_redia_film_get_watch_object($id);
-  file_put_contents("/var/www/drupalvm/drupal/web/debug/prod2.txt", print_r($watch_object, TRUE), FILE_APPEND);
   return $watch_object->hasTrailer;
 }
 
@@ -562,7 +575,7 @@ function ding_redia_film_get_watch_object($id) {
         break;
       }
     }
-    cache_set('film-watchobject-' . $id, serialize($watch_object), 'cache', 604800);
+    cache_set('film-watchobject-' . $id, serialize($watch_object), 'cache', REQUEST_TIME + 604800);
     return $watch_object;
   }
 }
@@ -571,15 +584,12 @@ function ding_redia_film_get_watch_object($id) {
  * Get users film status.
  */
 function ding_redia_film_get_status() {
-  $redia_user =  ding_redia_film_get_user_controller();
-  $token = ding_redia_film_get_user_token();
-  $is_loggedin = $redia_user->login($token);
-  if ($is_loggedin) {
-    $redia_user->getUserEligible();
+  $user_eligible = ding_redia_film_get_user_eligible();
+  if ($user_eligible !== false) {
     drupal_add_js(drupal_get_path('module', 'ding_redia_film') . '/js/jquery.easypiechart.js');
     drupal_add_js(drupal_get_path('module', 'ding_redia_film') . '/js/ding_redia_film_status.js');
-    drupal_add_js(['dingRediaFilm' => ['isEligible' => $redia_user->isEligible]], 'setting');
-    return theme('ding_redia_film_status', ['user' => $redia_user]);
+    drupal_add_js(['dingRediaFilm' => ['isEligible' => $user_eligible ->isEligible]], 'setting');
+    return theme('ding_redia_film_status', ['user' => $user_eligible]);
   } else {
     drupal_set_message(t('Could not log in the libry service'));
     return '';
@@ -592,7 +602,6 @@ function ding_redia_film_get_status() {
 function ding_redia_film_get_loans() {
   $loan_items = '';
   $loans = ding_redia_film_get_loans_from_libry();
-  file_put_contents("/var/www/drupalvm/drupal/web/debug/loans1.txt", print_r($loans, TRUE), FILE_APPEND);
   if (!isset($loans)) {
     drupal_set_message(t('Could not log in the film service'));
   }
@@ -610,21 +619,15 @@ function ding_redia_film_get_loans() {
 function ding_redia_film_get_loans_from_libry() {
   $user_token = ding_redia_film_get_user_token();
   $cached_response = cache_get('film-user-loans-' . $user_token);
-  file_put_contents("/var/www/drupalvm/drupal/web/debug/cache17.txt", print_r($cached_response, TRUE), FILE_APPEND);
   if ($cached_response !== false) {
     $loans = unserialize($cached_response->data);
-    file_put_contents("/var/www/drupalvm/drupal/web/debug/cache16.txt", print_r($loans, TRUE), FILE_APPEND);
   } else {
     $redia_user =  ding_redia_film_get_user_controller();
-    $token = ding_redia_film_get_user_token();
-    $is_loggedin = $redia_user->login($token);
-    if (!$is_loggedin) {
-      return null;
+    if (isset($redia_user)) {
+      $loans = $redia_user->getLoans();
+      ding_redia_film_get_loans_from_well($loans);
+      cache_set('film-user-loans-' . $user_token, serialize($loans), 'cache', REQUEST_TIME + 3600);
     }
-    $loans = $redia_user->getLoans();
-    ding_redia_film_get_loans_from_well($loans);
-    file_put_contents("/var/www/drupalvm/drupal/web/debug/cache18.txt", print_r($loans, TRUE), FILE_APPEND);
-    cache_set('film-user-loans-' . $user_token, serialize($loans), 'cache', 3600);
   }
   return $loans;
 }
@@ -835,10 +838,11 @@ function ding_redia_film_get_user_eligible() {
   $cached_response = cache_get('film-user-eligible-' . $token);
   if (!$cached_response) {
     $redia_user =  ding_redia_film_get_user_controller();
-    $redia_user->login($token);
-    $user_eligible = $redia_user->getUserEligible();
-    cache_set('film-user-eligible-' . $token, serialize($user_eligible , 'cache', 3600));
-    return $user_eligible;
+    if (isset($redia_user)) {
+      $user_eligible = $redia_user->getUserEligible();
+      cache_set('film-user-eligible-' . $token, serialize($user_eligible) , 'cache', REQUEST_TIME + 3600);
+      return $user_eligible;
+    }
   } else {
     return unserialize($cached_response->data);
   }
@@ -848,32 +852,17 @@ function ding_redia_film_get_user_eligible() {
  * Get the number of film loans.
  */
 function ding_redia_film_get_number_of_loans() {
-  $loan_count = 0;
-  $user_token = ding_redia_film_get_user_token();
-  $cached_response = cache_get('film-user-loans-' . $user_token);
-  if (isset($_SESSION['ding_redia_film_loan_count']) && $cached_response !== false) {
-    $loan_count = $_SESSION['ding_redia_film_loan_count'];
-  } else {
-    $loans = ding_redia_film_get_loans_from_libry();
-    file_put_contents("/var/www/drupalvm/drupal/web/debug/cache21.txt", print_r("Ramt", TRUE), FILE_APPEND);
-    file_put_contents("/var/www/drupalvm/drupal/web/debug/cache20.txt", print_r($loans, TRUE), FILE_APPEND);
-    $loan_count = count($loans);
-    $_SESSION['ding_redia_film_loan_count'] = $loan_count;
-  }
-  return $loan_count;
+  $loans = ding_redia_film_get_loans_from_libry();
+  return count($loans);
 }
 
 /**
  * Ajax call to set a bookmark in the film service.
  */
 function ding_redia_film_set_bookmark($bookmarkid, $offset) {
-  $token = ding_redia_film_get_user_token();
   $redia_user = ding_redia_film_get_user_controller();
   $object_controller = ding_redia_film_get_object_controller();
-
-  $logged_in = $redia_user->login($token);
   $object_controller->setBookmark($redia_user, $bookmarkid, (int) $offset);
-  //file_put_contents("/var/www/drupalvm/drupal/web/debug/film3.txt", print_r($bookmarkid . " " . $offset . "\n", TRUE), FILE_APPEND);
   drupal_exit();
 }
 
@@ -951,116 +940,3 @@ function ding_redia_film_add_site_template_config() {
     }
   }
 }
-
-/**
- * Add film loan and status panes.
- */
-// function ding_redia_film_add_film_loan_panes() {
-//   // There is no hook we can use, so we interact directly with ctools module.
-//   if (module_exists('ctools')) {
-//     // Add our panels to user loan page.
-//     ctools_get_plugins('page_manager', 'task_handlers', 'panel_context');
-
-//     $page = page_manager_get_page_cache('page');
-//     if (isset($page->handlers['page_user_loans_panel_context'])) {
-//       $handler = $page->handlers['page_user_loans_panel_context'];
-//     } else {
-//       // If we can't find the handler that means the configuration is in the code and
-//       // not in the database. So we need to find in a different way.
-//       // We need to call this so the page_manager_page_load_all() works.
-//       page_manager_get_task('page');
-//       $subtasks = page_manager_page_load_all();
-//       if (isset($subtasks['user_loans'])) {
-//         $loans_subtask = $subtasks['user_loans'];
-//         $handler = $loans_subtask->default_handlers['page_user_loans_panel_context'];
-//         // We have to save the subtask because it is not in the database already.
-//         page_manager_page_save($subtasks['user_loans']);
-//       }
-//     }
-
-//     $display = panels_panel_context_get_display($handler);
-//     $panes = ding_redia_film_loan_panes();
-//     $libry_loans_found = false;
-//     $libry_status_found = false;
-//     foreach ($display->content as $pane) {
-//       // Ckeck if the panes are already there.
-//       if ($pane->type == 'libryloans') {
-//         $libry_loans_found = true;
-//       }
-//       if ($pane->type == 'librystatus') {
-//         $libry_status_found = true;
-//       }
-//     }
-//     if (!$libry_loans_found) {
-//       $display->add_pane($panes['film_loans']);
-//     }
-//     if (!$libry_status_found) {
-//       $display->add_pane($panes['film_status']);
-//     }
-//     panels_save_display($display);
-//   }
-// }
-
-/**
- * Definition off the film loan and status panes.
- *
- */
-// function ding_redia_film_loan_panes() {
-//   $panes = [];
-//   $pane = new stdClass();
-//   $pane->uuid = ctools_uuid_generate();
-//   $pane->pid = 'new-' . $pane->uuid;
-//   $pane->panel = 'main_content';
-//   $pane->type = 'libryloans';
-//   $pane->subtype = 'libryloans';
-//   $pane->shown = TRUE;
-//   $pane->access = [];
-//   $pane->configuration = [
-//     'context' => 'argument_entity_id:user_1',
-//     'override_title' => 0,
-//     'override_title_text' => '',
-//     'override_title_heading' => 'h2',
-//   ];
-//   $pane->cache = [];
-//   $pane->style = [
-//     'settings' => NULL,
-//   ];
-//   $pane->css = [
-//     'css_id' => '',
-//     'css_class' => 'default-account-panel-layout',
-//   ];
-//   $pane->extras = [];
-//   $pane->position = 1;
-//   $pane->locks = '';
-
-//   $panes['film_loans'] = $pane;
-
-//   $pane = new stdClass();
-//   $pane->uuid = ctools_uuid_generate();
-//   $pane->pid = 'new-' . $pane->uuid;
-//   $pane->panel = 'main_content';
-//   $pane->type = 'librystatus';
-//   $pane->subtype = 'librystatus';
-//   $pane->shown = TRUE;
-//   $pane->access = [];
-//   $pane->configuration = [
-//     'context' => 'argument_entity_id:user_1',
-//     'override_title' => 0,
-//     'override_title_text' => '',
-//     'override_title_heading' => 'h2',
-//   ];
-//   $pane->cache = [];
-//   $pane->style = [
-//     'settings' => NULL,
-//   ];
-//   $pane->css = [
-//     'css_id' => '',
-//     'css_class' => 'default-account-panel-layout',
-//   ];
-//   $pane->extras = [];
-//   $pane->position = 2;
-//   $pane->locks = '';
-
-//   $panes['film_status'] = $pane;
-//   return $panes;
-// }

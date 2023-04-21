@@ -37,6 +37,16 @@ class RediaFilmUserController extends RediaFilmAbstractController
     return $this->session_id;
   }
 
+/**
+   * Sets session id for the user.
+   *
+   * @param string $session_id
+   *   Sets the session id.
+   */
+  public function setSessionid($session_id) {
+    $this->is_loggedin = true;
+    $this->session_id = $session_id;
+  }
   /**
    * Is the user logged in.
    *
@@ -105,7 +115,6 @@ class RediaFilmUserController extends RediaFilmAbstractController
           $ids[] = $loan['identifier'];
         }
       }
-      file_put_contents("/var/www/drupalvm/drupal/web/debug/loans3.txt", print_r($loans, TRUE), FILE_APPEND);
       foreach ($loans as $loan) {
         $libry_object = new RediaFilmObject();
         $id = $loan['identifier'];
@@ -120,29 +129,8 @@ class RediaFilmUserController extends RediaFilmAbstractController
       $this->status_message = 'Could not get the loans for the user from film service';
       $this->logger->logError('Could not get the loans for the user from film service: %response', ['%response' => print_r($response, TRUE)]);
     }
-    file_put_contents("/var/www/drupalvm/drupal/web/debug/loans2.txt", print_r($libry_loans, TRUE), FILE_APPEND);
     return $libry_loans;
   }
-
-  // /**
-  //  * Has the user already checked out the film.
-  //  *
-  //  * @param string $id
-  //  *   The token from the user login to the adgangsplatform.
-  //  *
-  //  * @return bool $isCheckout
-  //  *   Is the film checked out.
-  //  */
-  // public function isCheckedOut($id) {
-  //   $libry_loans = $this->getLoans(false);
-  //   foreach ($libry_loans as $loans) {
-  //     if ($loans == $id) {
-  //       return true;
-  //     }
-  //   }
-
-  //   return false;
-  // }
 
  /**
    * Gets the user's eligibility from the service. The user must be logged in.

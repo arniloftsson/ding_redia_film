@@ -45,62 +45,6 @@ class RediaFilmObjectsController extends RediaFilmAbstractController
     return isset($libry_object->trailers) && !empty($libry_object->trailers);
   }
 
-   /**
-    * Gets at film object from the service.
-    *
-    * @param string $identifier
-    *   The identifier off the object.
-    *
-    * @return RediaFilmObject
-    *   The objects from the service.
-    */
-  public function getObject($identifier) {
-    $objects = $this->getObjects([$identifier]);
-
-    return reset($objects);
-  }
-
-   /**
-    * Get film objects from the service.
-    *
-    * @param array $identifiers
-    *   The identifiers off the object.
-    *
-    * @return array $libry_objects
-    *   The objects from the service.
-    */
-    public function getObjects(array $identifiers) {
-      file_put_contents("/var/www/drupalvm/drupal/web/debug/cache1.txt", print_r($identifiers, TRUE), FILE_APPEND);
-      $ids_from_service = [];
-      $libry_objects = [];
-      foreach ($identifiers as $id) {
-        $cached_object = cache_get('film-object-' . $id);
-        file_put_contents("/var/www/drupalvm/drupal/web/debug/cache2.txt", print_r($cached_object, TRUE), FILE_APPEND);
-        file_put_contents("/var/www/drupalvm/drupal/web/debug/cache12.txt", print_r($_SESSION, TRUE), FILE_APPEND);
-        if ($cached_object !== false ) {
-          $libry_objects[$id] = $this->createObject(json_decode($cached_object->data, true));
-        } else {
-          $ids_from_service[] = $id;
-        }
-      }
-      file_put_contents("/var/www/drupalvm/drupal/web/debug/cache3.txt", print_r($ids_from_service, TRUE), FILE_APPEND);
-      $response = $this->client->getObject($ids_from_service);
-      if ($this->hasResult($response)) {
-        $data = $this->getData($response);
-        foreach ($data as $key => $object) {
-          if (isset($object['data'])) {
-            $libry_objects[$key] = $this->createObject($object['data']);
-            cache_set('film-object-' . $key, json_encode($object['data']), 'cache', 604800);
-          }
-        }
-      }
-      else {
-        $this->logger->logError('Could not get the objects from the film service: %response', ['%response' => print_r($response, TRUE)]);
-      }
-      file_put_contents("/var/www/drupalvm/drupal/web/debug/cache4.txt", print_r($libry_objects, TRUE), FILE_APPEND);
-      return $libry_objects;
-    }
-
   /**
     * Gets at film product from the service.
     *
@@ -121,7 +65,6 @@ class RediaFilmObjectsController extends RediaFilmAbstractController
           $watch_object->trailers = $data['media']['trailers'];
           $watch_object->hasTrailer = true;
         }
-        file_put_contents("/var/www/drupalvm/drupal/web/debug/prod1.txt", print_r($data, TRUE), FILE_APPEND);
         return $watch_object;
       } else {
         $this->logger->logError('Could not get the product from the film service: %response', ['%response' => print_r($response, TRUE)]);
@@ -190,7 +133,6 @@ class RediaFilmObjectsController extends RediaFilmAbstractController
         }
       }
     }
-
     return 0;
   }
 
@@ -205,6 +147,5 @@ class RediaFilmObjectsController extends RediaFilmAbstractController
    */
   public function setBookmark(RediaFilmUserController $user, $bookmarkId, $offset) {
     $bookmarks =  $this->client->setBookmark($bookmarkId, $offset, $user->getSessionid());
-    //file_put_contents("/var/www/drupalvm/drupal/web/debug/film5.txt", print_r($bookmarks, TRUE), FILE_APPEND);
   }
 }
