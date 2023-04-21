@@ -154,3 +154,8 @@
 .page-film-libry-watch #Coi-Renew {
   display: none !important;
 }
+
+/** Devel code. Removing freescout icon */
+#fsw-btn {
+	display: none;
+}
