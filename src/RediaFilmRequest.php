@@ -332,7 +332,7 @@ class RediaFilmRequest
       $decoded_response = json_decode($content, true);
       $stopTime = explode(' ', microtime());
       $time = floatval(($stopTime[1]+$stopTime[0]) - ($startTime[1]+$startTime[0]));
-      file_put_contents("/var/www/drupalvm/drupal/web/debug/perf1.txt", print_r($method . ' ' . $time . "\n", TRUE), FILE_APPEND);
+      //file_put_contents("/var/www/drupalvm/drupal/web/debug/perf1.txt", print_r($method . ' ' . $time . "\n", TRUE), FILE_APPEND);
       $this->logger->logDebug('Response from redia service: %json', ['%json' => $content]);
     } catch (Exception $e) {
       $this->logger->logException($e);
