@@ -95,7 +95,6 @@ function ding_redia_film_admin_form($form, &$form_state) {
 function ding_redia_film_revert_configuration($form, &$form_state) {
   try {
     ding_redia_film_add_site_template_config();
-    ding_redia_film_add_film_loan_panes();
     drupal_set_message(t('Redia film configuration reverted'));
   } catch (Exception $e) {
     drupal_set_message(t('Failed to revert Redia film configuration'));
