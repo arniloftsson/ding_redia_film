@@ -23,7 +23,6 @@ class RediaFilmObjectsController extends RediaFilmAbstractController
    */
   public function createLoan(RediaFilmUserController $user, RediaFilmWatchObject $object) {
     $response = $this->client->createLoan($object->id, $user->getSessionid());
-    file_put_contents("/var/www/drupalvm/drupal/web/debug/film3.txt", print_r($response , TRUE), FILE_APPEND);
     if ($this->hasResult($response)) {
       $data = $this->getData($response);
       if (isset($data) && isset($data['success']) && $data['success']) {
@@ -125,7 +124,6 @@ class RediaFilmObjectsController extends RediaFilmAbstractController
    */
   public function getBookmark(RediaFilmUserController $user, RediaFilmWatchObject $object) {
     $response = $this->client->getBookmarks($user->getSessionid());
-    //file_put_contents("/var/www/drupalvm/drupal/web/debug/film1.txt", print_r($response, TRUE), FILE_APPEND);
     if ($this->hasResult($response)) {
       $data = $this->getData($response);
       foreach ($data as $bookmark) {

@@ -2,8 +2,7 @@
 <?php
 /**
  * @file
- * The initial react code
- *
+ * Film checkout template.
  *
  */
 ?>

@@ -11,12 +11,10 @@
 function ding_redia_film_install() {
   try {
     ding_redia_film_add_site_template_config();
-    ding_redia_film_add_film_loan_panes();
   } catch (Exception $e) {
     watchdog_exception('ding_redia_film', $e);
   }
 }
-
 
  /**
   * Implements hook_uninstall().

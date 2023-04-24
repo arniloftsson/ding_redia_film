@@ -124,27 +124,6 @@ class RediaFilmRequest
   }
 
   /**
-    * Gets at film object from the service.
-    *
-    * @param array $identifiers
-    *   The identifiers off the objects.
-    *
-    * @return array $response
-    *   The response from the film service.
-    */
-  public function getObject(array $identifiers) {
-    $params = [];
-
-    $params[] = $this->apikey;
-    $params[] = $this->version;
-    $params[] = $this->language;
-    $params[] = $this->customerId;
-    $params[] = $identifiers;
-
-    return $this->filmServiceRequest('watch.getObjects', $params);
-  }
-
-    /**
     * Gets at product object from the service.
     *
     * @param string $identifier

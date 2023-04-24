@@ -18,7 +18,7 @@
              * setProps takes an object of
              * {
              *  mpxToken: string, // the mpx token
-             *  info: LibraryObject, // The data from getObjects api
+             *  info: LibraryObject, // The data from getProduct api
              *  goBack: function // function invoked when back button is clicked
              * }
              *

@@ -95,9 +95,6 @@ class RediaFilmUserController extends RediaFilmAbstractController
   /**
    * Gets the users loan from the service The user must be logged in.
    *
-   * @param bool $getObjects
-   *   Whether to get object data from the service.
-   *
    * @return array|null $libry_loans
    *   The user's loans from the service or empty array if none. Null if the
    *   request fails.
