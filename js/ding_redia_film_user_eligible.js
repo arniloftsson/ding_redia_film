@@ -10,7 +10,6 @@
       $("header").once("header", function () {
         var url = Drupal.settings.dingRediaFilm.userEligibleUrl;
         $.getJSON(url);
-        console.log("Update");
       });
     },
   };

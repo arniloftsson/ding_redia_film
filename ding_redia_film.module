@@ -242,12 +242,11 @@ function ding_redia_film_create_checkout_popup($libry_id , $redia_user) {
     'checkout_confirmation' => $checkout_confirmation,
     'checkout_status' => $checkout_status,
     // l() urlencodes our parameters so we make the link our selves.
-    'checkout_yes_button' => '<a href="' . $url . '">'  . $checkout_yes_button . '</a>',
+    'checkout_yes_button' => '<a id="redia-film-checkout-yes-button" href="' . $url . '">'  . $checkout_yes_button . '</a>',
     'checkout_cancel_button' => $checkout_cancel_button,
   ];
 
   $html = theme('ding_redia_film_checkout', $variables);
-
   return ajax_command_ding_popup('ding_redia_film', t('Watch film'), $html);
 }
 
@@ -280,6 +279,7 @@ function ding_redia_film_watch($id) {
 
   $libry_object = ding_redia_film_get_watch_object($id);
   $is_checked_out = ding_redia_film_is_checked_out($id);
+
   // We only check out if the user has confirmed.
   if (!$is_checked_out && $wants_to_checkout) {
     $success = $object_controller->createLoan($redia_user, $libry_object);
@@ -452,7 +452,8 @@ function ding_redia_film_get_user_controller() {
   $user_controller = new RediaFilmUserController($client);
   $token = ding_redia_film_get_user_token();
   $cached_response = cache_get('film-user-login-' . $token);
-  if (!$cached_response) {
+  //file_put_contents("/var/www/drupalvm/drupal/web/debug/perf1.txt", print_r( $cached_response, TRUE), FILE_APPEND);
+  if (!$cached_response || $cached_response->expire < time()) {
     $user_controller->login($token);
     if (!$user_controller->isLoggedin()) {
       watchdog('ding_redia_film', 'Cant log in to the redia film service', NULL, WATCHDOG_ERROR);

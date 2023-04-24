@@ -13,7 +13,6 @@
   <p><?php print $checkout_status; ?></p>
   <div class="redia-film-confirmation">
      <?php print $checkout_yes_button; ?></a>
-    <a id="redia-film-cancel-button"href=""><?php print $checkout_cancel_button; ?></a>
+    <a id="redia-film-cancel-button" href=""><?php print $checkout_cancel_button; ?></a>
   </div>
 </div>
-
