@@ -300,7 +300,7 @@ function ding_redia_film_watch($id) {
 
   $libry_object->token = $object_controller->getToken($redia_user);
 
-  //Todo devel code
+  //Todo devel code. The bookmark services will change and use a token instead off userid.
   if ($is_checked_out) {
     $libry_object->bookmarkId = $libry_object->id;
     $libry_object->offset = $object_controller->getBookmark($redia_user, $libry_object);
@@ -451,7 +451,6 @@ function ding_redia_film_get_user_controller() {
   $user_controller = new RediaFilmUserController($client);
   $token = ding_redia_film_get_user_token();
   $cached_response = cache_get('film-user-login-' . $token);
-  //file_put_contents("/var/www/drupalvm/drupal/web/debug/perf1.txt", print_r( $cached_response, TRUE), FILE_APPEND);
   if (!$cached_response || $cached_response->expire < time()) {
     $user_controller->login($token);
     if (!$user_controller->isLoggedin()) {
@@ -530,7 +529,6 @@ function ding_redia_film_get_user_token() {
   if ($use_devel_token && $devel_token) {
     return $devel_token;
   }
-
   return ding_provider_invoke('openplatform_token', 'for_user');
 }
 
@@ -704,7 +702,7 @@ function ding_redia_film_search($query, $start, $size) {
 }
 
 /**
- * Watch film.
+ * Prepare film loan item to shown in users digital loans.
  */
 function ding_redia_film_prepare_loan_item($loan) {
   $path = 'ting/object/' . $loan->tingObjectId;

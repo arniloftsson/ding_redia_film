@@ -69,6 +69,5 @@ class RediaFilmLogger
    */
   public function logException(\Exception $exception, $message = null, array $variables = []) {
       watchdog_exception($this->type, $exception, $message, $variables, WATCHDOG_ERROR);
-
   }
 }
