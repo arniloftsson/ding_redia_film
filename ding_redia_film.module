@@ -346,7 +346,6 @@ function ding_redia_film_watch_trailer($id) {
 function ding_redia_film_ding_entity_buttons($type, $entity, $view_mode, $widget = 'default') {
   $buttons = [];
   if ($type == 'ding_entity' && ding_redia_film_is_libry_film($entity)) {
-    ding_redia_film_save_cover($entity);
     $watch_button = [
       '#theme' => 'link',
       '#text' => t('Watch film'),
@@ -767,45 +766,6 @@ function ding_redia_film_page_alter(&$page) {
       ], 'setting');
     }
   }
-  $path = current_path();
-  if (substr($path, 0, 11) === "search/ting") {
-    $search_result = ting_search_current_results();
-    foreach ($search_result->getTingEntityCollections() as $collection) {
-      foreach ($collection->getEntities() as $entity) {
-        ding_redia_film_save_cover($entity);
-      }
-    }
-  }
-}
-
-/**
- * Save the cover url.
- */
-function ding_redia_film_save_cover($entity) {
-  if (ding_redia_film_is_libry_film($entity) && $entity->reply->getRelationsData() !== null) {
-    foreach ($entity->reply->getRelationsData() as $relationsData) {
-      if ($relationsData->relationType == 'dbcaddi:hasImage' && (strpos($relationsData->relationUri, 'po-reg') !== FALSE)) {
-        variable_set('filmservice-cover-' . $entity->getId(), $relationsData->relationUri);
-        break;
-      }
-    }
-  }
-}
-
-/**
- * Implements hook_ting_covers().
- */
-function ding_redia_film_ting_covers($entities)
-{
-  $covers = [];
-  foreach ($entities as $entity) {
-    $source_url = variable_get('filmservice-cover-' . $entity->getId());
-    if (isset($source_url)) {
-      // Return the path to the cover.
-      $covers[$entity->getId()] = $source_url;
-    }
-  }
-  return $covers;
 }
 
 /**
